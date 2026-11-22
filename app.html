@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gift Vova App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #0f1115; color: white; padding-bottom: 70px; }
+        
+        /* Шапка с балансом */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background-color: #171a21; border-bottom: 1px solid #2a2e38; position: sticky; top: 0; z-index: 10; }
+        .logo { font-weight: bold; font-size: 18px; color: #ffdb4b; }
+        .balance { background-color: #2a2e38; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 16px; display: flex; align-items: center; gap: 5px; }
+        
+        /* Вкладки */
+        .tabs { display: flex; justify-content: space-around; background-color: #171a21; padding: 10px 0; border-bottom: 1px solid #2a2e38; }
+        .tab { color: #8b8e96; font-size: 14px; padding: 10px; cursor: pointer; transition: 0.3s; }
+        .tab.active { color: white; border-bottom: 2px solid #ffdb4b; font-weight: bold; }
+        
+        /* Контент */
+        .content { padding: 20px; display: none; }
+        .content.active { display: block; }
+        
+        /* Карточки подарков */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .card { background-color: #171a21; border-radius: 12px; padding: 15px; text-align: center; border: 1px solid #2a2e38; position: relative; overflow: hidden; }
+        .card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, #ff4b4b, #ffdb4b); }
+        .card-icon { font-size: 40px; margin-bottom: 10px; }
+        .card-title { font-size: 14px; margin-bottom: 5px; color: #8b8e96; }
+        .card-price { font-weight: bold; font-size: 16px; color: #ffdb4b; }
+        .buy-btn { background-color: #2481cc; color: white; border: none; padding: 8px 15px; border-radius: 8px; margin-top: 10px; width: 100%; cursor: pointer; font-weight: bold; }
+        
+        /* Апгрейдер */
+        .upgrader-box { background-color: #171a21; padding: 20px; border-radius: 16px; text-align: center; border: 1px solid #2a2e38; }
+        .progress-bar { width: 100%; height: 10px; background-color: #2a2e38; border-radius: 5px; margin: 20px 0; overflow: hidden; }
+        .progress-fill { height: 100%; width: 50%; background: linear-gradient(90deg, #ff4b4b, #ffdb4b); transition: 0.3s; }
+        .big-btn { background: linear-gradient(90deg, #ff4b4b, #ffdb4b); color: black; border: none; padding: 15px; border-radius: 12px; width: 100%; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        
+        /* Нижнее меню */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background-color: #171a21; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #2a2e38; }
+        .nav-item { text-align: center; color: #8b8e96; font-size: 10px; cursor: pointer; }
+        .nav-item.active { color: #ffdb4b; }
+        .nav-icon { font-size: 20px; margin-bottom: 3px; }
+    </style>
+</head>
+<body>
+    
+    <div class="header">
+        <div class="logo">Gift Vova</div>
+        <div class="balance" id="balanceDisplay">💰 0</div>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('shop')">Магазин</div>
+        <div class="tab" onclick="switchTab('upgrader')">Апгрейдер</div>
+        <div class="tab" onclick="switchTab('profile')">Профиль</div>
+    </div>
+
+    <!-- Магазин -->
+    <div id="tab-shop" class="content active">
+        <div class="grid">
+            <div class="card">
+                <div class="card-icon">🌹</div>
+                <div class="card-title">Роза</div>
+                <div class="card-price">25 баллов</div>
+                <button class="buy-btn" onclick="buyItem('Роза', 25)">Купить</button>
+            </div>
+            <div class="card">
+                <div class="card-icon">🧸</div>
+                <div class="card-title">Мишка</div>
+                <div class="card-price">15 баллов</div>
+                <button class="buy-btn" onclick="buyItem('Мишка', 15)">Купить</button>
+            </div>
+            <div class="card">
+                <div class="card-icon">🎂</div>
+                <div class="card-title">Торт</div>
+                <div class="card-price">50 баллов</div>
+                <button class="buy-btn" onclick="buyItem('Торт', 50)">Купить</button>
+            </div>
+            <div class="card">
+                <div class="card-icon">💎</div>
+                <div class="card-title">Алмаз</div>
+                <div class="card-price">200 баллов</div>
+                <button class="buy-btn" onclick="buyItem('Алмаз', 200)">Купить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Апгрейдер -->
+    <div id="tab-upgrader" class="content">
+        <div class="upgrader-box">
+            <h2>Апгрейдер</h2>
+            <p style="color: #8b8e96; font-size: 14px; margin-top: 5px;">Испытай удачу!</p>
+            
+            <div style="display: flex; justify-content: space-between; margin-top: 30px; font-size: 14px;">
+                <div>Твой предмет:</div>
+                <div style="color: #ff4b4b;">🧸 Мишка</div>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="upgProgress"></div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; font-size: 14px;">
+                <div>Цель:</div>
+                <div style="color: #ffdb4b;">💎 Алмаз</div>
+            </div>
+            
+            <button class="big-btn" onclick="doUpgrade()">Улучшить (Шанс 50%)</button>
+        </div>
+    </div>
+
+    <!-- Профиль -->
+    <div id="tab-profile" class="content">
+        <div class="upgrader-box">
+            <h2>Твой профиль</h2>
+            <div style="margin-top: 20px; text-align: left;">
+                <p style="margin-bottom: 10px;">👤 Имя: <span id="userName">Гость</span></p>
+                <p style="margin-bottom: 10px;">💰 Баланс: <span id="profileBalance">0</span> баллов</p>
+                <p>🎁 Подарков: <span id="profileGifts">0</span></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('shop')"><div class="nav-icon">🛒</div>Магазин</div>
+        <div class="nav-item" onclick="switchTab('upgrader')"><div class="nav-icon">📈</div>Апгрейд</div>
+        <div class="nav-item" onclick="switchTab('profile')"><div class="nav-icon">👤</div>Профиль</div>
+    </div>
+
+    <script>
+        // Инициализация Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Развернуть на весь экран
+        
+        let currentBalance = 137382; // Твой баланс для теста
+        let currentGifts = 0;
+
+        // Обновляем интерфейс при старте
+        document.getElementById('balanceDisplay').innerText = `💰 ${currentBalance}`;
+        document.getElementById('profileBalance').innerText = currentBalance;
+        document.getElementById('userName').innerText = tg.initDataUnsafe?.user?.first_name || "Игрок";
+
+        function switchTab(tabName) {
+            // Скрываем все вкладки
+            document.querySelectorAll('.content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
+            // Показываем нужную
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.querySelector(`.nav-item[onclick="switchTab('${tabName}')"]`).classList.add('active');
+        }
+
+        function buyItem(name, price) {
+            if (currentBalance >= price) {
+                currentBalance -= price;
+                currentGifts += 1;
+                updateUI();
+                tg.showAlert(`Ты купил ${name}!`);
+                tg.sendData(JSON.stringify({ action: "buy", item: name, price: price }));
+            } else {
+                tg.showAlert("Недостаточно баллов!");
+            }
+        }
+
+        function doUpgrade() {
+            // Имитация апгрейда
+            const win = Math.random() > 0.5;
+            if (win) {
+                currentGifts += 1;
+                tg.showAlert("Победа! Ты улучшил предмет!");
+                tg.sendData(JSON.stringify({ action: "upgrade", win: true }));
+            } else {
+                tg.showAlert("Неудача. Попробуй еще!");
+                tg.sendData(JSON.stringify({ action: "upgrade", win: false }));
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('balanceDisplay').innerText = `💰 ${currentBalance}`;
+            document.getElementById('profileBalance').innerText = currentBalance;
+            document.getElementById('profileGifts').innerText = currentGifts;
+        }
+    </script>
+</body>
+  </html>

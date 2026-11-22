@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gift Vova App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #0f1115; color: white; padding-bottom: 70px; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background-color: #171a21; border-bottom: 1px solid #2a2e38; position: sticky; top: 0; z-index: 10; }
+        .logo { font-weight: bold; font-size: 18px; color: #ffdb4b; }
+        .balance { background-color: #2a2e38; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 16px; }
+        
+        .tabs { display: flex; justify-content: space-around; background-color: #171a21; padding: 10px 0; border-bottom: 1px solid #2a2e38; }
+        .tab { color: #8b8e96; font-size: 14px; padding: 10px; cursor: pointer; }
+        .tab.active { color: white; border-bottom: 2px solid #ffdb4b; font-weight: bold; }
+        
+        .content { padding: 20px; display: none; }
+        .content.active { display: block; }
+        
+        /* Магазин */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .card { background-color: #171a21; border-radius: 12px; padding: 15px; text-align: center; border: 1px solid #2a2e38; position: relative; }
+        .card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, #ff4b4b, #ffdb4b); }
+        .card-icon { font-size: 40px; margin-bottom: 10px; }
+        .card-title { font-size: 12px; color: #8b8e96; margin-bottom: 5px; }
+        .card-price { font-weight: bold; font-size: 14px; color: #ffdb4b; }
+        .buy-btn { background-color: #2481cc; color: white; border: none; padding: 8px; border-radius: 8px; margin-top: 10px; width: 100%; font-weight: bold; }
+        
+        /* Апгрейдер */
+        .upgrader-box { background-color: #171a21; padding: 20px; border-radius: 16px; text-align: center; border: 1px solid #2a2e38; }
+        .upg-controls { display: flex; justify-content: center; gap: 10px; margin: 15px 0; }
+        .upg-btn { background-color: #2a2e38; color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .upg-btn.active { background-color: #ffdb4b; color: black; }
+        
+        .progress-container { position: relative; width: 100%; height: 40px; background-color: #2a2e38; border-radius: 20px; margin: 20px 0; overflow: hidden; border: 2px solid #3a3f4b; }
+        .progress-fill { height: 100%; width: 50%; background: linear-gradient(90deg, #ff4b4b, #ffdb4b); transition: width 0.3s; }
+        .progress-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-weight: bold; font-size: 16px; text-shadow: 1px 1px 2px black; }
+        
+        .big-btn { background: linear-gradient(90deg, #ff4b4b, #ffdb4b); color: black; border: none; padding: 15px; border-radius: 12px; width: 100%; font-size: 18px; font-weight: bold; margin-top: 10px; }
+        
+        /* Админка */
+        .admin-panel { margin-top: 20px; padding: 15px; background-color: #1a1c23; border: 1px solid #ff4b4b; border-radius: 12px; display: none; }
+        .admin-input { width: 100%; padding: 8px; margin-top: 5px; background: #0f1115; border: 1px solid #2a2e38; color: white; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    
+    <div class="header">
+        <div class="logo">Gift Vova</div>
+        <div class="balance" id="balanceDisplay">💰 0</div>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('shop')">Магазин</div>
+        <div class="tab" onclick="switchTab('upgrader')">Апгрейдер</div>
+    </div>
+
+    <!-- Магазин -->
+    <div id="tab-shop" class="content active">
+        <div class="grid">
+            <div class="card"><div class="card-icon">🌹</div><div class="card-title">Роза</div><div class="card-price">25</div><button class="buy-btn" onclick="buyItem('Роза', 25)">Купить</button></div>
+            <div class="card"><div class="card-icon">🧸</div><div class="card-title">Мишка</div><div class="card-price">15</div><button class="buy-btn" onclick="buyItem('Мишка', 15)">Купить</button></div>
+            <div class="card"><div class="card-icon">🎂</div><div class="card-title">Торт</div><div class="card-price">50</div><button class="buy-btn" onclick="buyItem('Торт', 50)">Купить</button></div>
+            <div class="card"><div class="card-icon">💎</div><div class="card-title">Алмаз</div><div class="card-price">200</div><button class="buy-btn" onclick="buyItem('Алмаз', 200)">Купить</button></div>
+            <!-- Новые дорогие подарки -->
+            <div class="card"><div class="card-icon">👑</div><div class="card-title">Корона</div><div class="card-price">1000</div><button class="buy-btn" onclick="buyItem('Корона', 1000)">Купить</button></div>
+            <div class="card"><div class="card-icon">🏎️</div><div class="card-title">NFT Тачка</div><div class="card-price">5000</div><button class="buy-btn" onclick="buyItem('NFT Тачка', 5000)">Купить</button></div>
+            <div class="card"><div class="card-icon">🐉</div><div class="card-title">NFT Дракон</div><div class="card-price">10000</div><button class="buy-btn" onclick="buyItem('NFT Дракон', 10000)">Купить</button></div>
+            <div class="card"><div class="card-icon">🚀</div><div class="card-title">Ракета</div><div class="card-price">50000</div><button class="buy-btn" onclick="buyItem('Ракета', 50000)">Купить</button></div>
+        </div>
+    </div>
+
+    <!-- Апгрейдер -->
+    <div id="tab-upgrader" class="content">
+        <div class="upgrader-box">
+            <h2>Апгрейдер</h2>
+            <p style="color: #8b8e96; font-size: 12px;">Крути рулетку и умножай подарки!</p>
+            
+            <!-- Кнопки множителей -->
+            <div class="upg-controls">
+                <button class="upg-btn active" onclick="setMultiplier(2)">x2</button>
+                <button class="upg-btn" onclick="setMultiplier(3)">x3</button>
+                <button class="upg-btn" onclick="setMultiplier(4)">x4</button>
+            </div>
+
+            <!-- Кнопки процентов -->
+            <div class="upg-controls">
+                <button class="upg-btn active" onclick="setChance(50)">50%</button>
+                <button class="upg-btn" onclick="setChance(70)">70%</button>
+                <button class="upg-btn" onclick="setChance(80)">80%</button>
+            </div>
+            
+            <!-- Ползунок (прогресс бар) -->
+            <div class="progress-container">
+                <div class="progress-fill" id="upgProgress"></div>
+                <div class="progress-text" id="upgText">50% Шанс</div>
+            </div>
+            
+            <button class="big-btn" onclick="doUpgrade()">Крутить рулетку</button>
+
+            <!-- Секретная админка -->
+            <div id="adminPanel" class="admin-panel">
+                <h3 style="color: #ff4b4b;">🔧 Настройки Админа</h3>
+                <label>Максимальный множитель (x):</label>
+                <input type="number" id="adminMaxX" class="admin-input" value="4">
+                <label>Шанс выигрыша (по умолчанию):</label>
+                <input type="number" id="adminDefaultChance" class="admin-input" value="50">
+                <button class="buy-btn" style="margin-top: 10px; background: #ff4b4b;" onclick="saveAdminSettings()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        
+        let currentBalance = 137382; 
+        let currentMultiplier = 2;
+        let currentChance = 50;
+        
+        document.getElementById('balanceDisplay').innerText = `💰 ${currentBalance}`;
+
+        // Если ты админ (твой ID), показываем настройки
+        const userId = tg.initDataUnsafe?.user?.id;
+        if (userId == 7579695526) { 
+            document.getElementById('adminPanel').style.display = 'block';
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+        }
+
+        function setMultiplier(mult) {
+            currentMultiplier = mult;
+            document.querySelectorAll('.upg-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            updateUpgBar();
+        }
+
+        function setChance(chance) {
+            currentChance = chance;
+            // Убираем выделение с кнопок процентов
+            document.querySelectorAll('.upg-btn')[3].classList.remove('active');
+            document.querySelectorAll('.upg-btn')[4].classList.remove('active');
+            document.querySelectorAll('.upg-btn')[5].classList.remove('active');
+            event.target.classList.add('active');
+            updateUpgBar();
+        }
+
+        function updateUpgBar() {
+            const fill = document.getElementById('upgProgress');
+            const text = document.getElementById('upgText');
+            fill.style.width = `${currentChance}%`;
+            text.innerText = `x${currentMultiplier} | Шанс: ${currentChance}%`;
+        }
+
+        function buyItem(name, price) {
+            if (currentBalance >= price) {
+                currentBalance -= price;
+                document.getElementById('balanceDisplay').innerText = `💰 ${currentBalance}`;
+                tg.showAlert(`Ты купил ${name}!`);
+                tg.sendData(JSON.stringify({ action: "buy", item: name, price: price }));
+            } else {
+                tg.showAlert("Недостаточно баллов!");
+            }
+        }
+
+        function doUpgrade() {
+            // Анимация прокрута
+            const fill = document.getElementById('upgProgress');
+            fill.style.width = '0%';
+            document.getElementById('upgText').innerText = "Крутим...";
+
+            setTimeout(() => {
+                fill.style.width = `${currentChance}%`;
+                const win = Math.random() * 100 < currentChance;
+                
+                if (win) {
+                    const winAmount = 100 * currentMultiplier; // Пример выигрыша
+                    currentBalance += winAmount;
+                    document.getElementById('balanceDisplay').innerText = `💰 ${currentBalance}`;
+                    document.getElementById('upgText').innerText = `🎉 ВЫИГРЫШ +${winAmount}!`;
+                    tg.sendData(JSON.stringify({ action: "upgrade", win: true, amount: winAmount }));
+                } else {
+                    document.getElementById('upgText').innerText = `😔 Проигрыш...`;
+                    tg.sendData(JSON.stringify({ action: "upgrade", win: false }));
+                }
+            }, 1000); // 1 секунда анимации
+        }
+
+        function saveAdminSettings() {
+            const maxX = document.getElementById('adminMaxX').value;
+            const defChance = document.getElementById('adminDefaultChance').value;
+            tg.showAlert(`Настройки сохранены: Макс. X = ${maxX}, Шанс = ${defChance}%`);
+            // Здесь можно отправить данные боту, чтобы он сохранил их в базу
+            tg.sendData(JSON.stringify({ action: "admin_save", max_x: maxX, chance: defChance }));
+        }
+    </script>
+</body>
+  </html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gift Vova App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #10111a; color: white; padding-bottom: 80px; }
+        
+        /* Шапка */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px; }
+        .logo { font-size: 24px; font-weight: 900; color: white; }
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        .balance-chip { background: #1c1e2e; padding: 8px 12px; border-radius: 20px; display: flex; align-items: center; gap: 5px; font-weight: bold; }
+        .top-up-btn { background: linear-gradient(90deg, #6a5af9, #a279f9); border: none; color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; }
+        
+        /* Баннер */
+        .banner { margin: 15px; border-radius: 16px; background: linear-gradient(135deg, #2b1f5e, #121421); padding: 20px; position: relative; overflow: hidden; border: 1px solid #382d7a; }
+        .banner h2 { font-size: 24px; margin-bottom: 5px; }
+        .banner p { color: #b3b4c5; margin-bottom: 15px; font-size: 14px; }
+        .banner-btn { background: white; color: #6a5af9; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; }
+        .banner-img { position: absolute; right: -10px; top: 10px; font-size: 80px; opacity: 0.8; }
+        
+        /* Игры */
+        .section-title { margin: 20px 15px 10px; font-size: 20px; font-weight: bold; }
+        .games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 15px; }
+        .game-card { background: #1c1e2e; border-radius: 16px; padding: 15px; text-align: center; position: relative; overflow: hidden; border: 1px solid #2a2e38; }
+        .game-card.upg { background: linear-gradient(180deg, #5e1a1a, #1c1e2e); }
+        .game-card.storm { background: linear-gradient(180deg, #4a1a5e, #1c1e2e); }
+        .game-card.case { background: linear-gradient(180deg, #1a4a5e, #1c1e2e); }
+        .game-icon { font-size: 60px; margin: 15px 0; }
+        .game-title { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+        .game-players { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.5); padding: 4px 8px; border-radius: 10px; font-size: 10px; }
+        
+        /* Нижнее меню */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background-color: #1c1e2e; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #2a2e38; }
+        .nav-item { text-align: center; color: #8b8e96; font-size: 12px; font-weight: bold; }
+        .nav-item.active { color: #a279f9; }
+    </style>
+</head>
+<body>
+    
+    <div class="header">
+        <div class="logo">Gift Vova</div>
+        <div class="header-right">
+            <div class="balance-chip">💰 <span id="balanceDisplay">0</span></div>
+            <button class="top-up-btn" onclick="tg.showAlert('Пополнение скоро!')">Пополнить</button>
+        </div>
+    </div>
+
+    <div class="banner">
+        <h2>Подарок</h2>
+        <p>за пополнение баланса</p>
+        <button class="banner-btn" onclick="tg.showAlert('Скоро!')">Пополнить ></button>
+        <div class="banner-img">🎁</div>
+    </div>
+
+    <div class="section-title">Игры</div>
+    <div class="games-grid">
+        <div class="game-card upg" onclick="tg.showAlert('Игра Апгрейд запускается!')">
+            <div class="game-players">🟢 448 играют</div>
+            <div class="game-icon">🏛️</div>
+            <div class="game-title">Апгрейд</div>
+        </div>
+        <div class="game-card storm" onclick="tg.showAlert('Игра Шторм запускается!')">
+            <div class="game-players">🟢 20 играют</div>
+            <div class="game-icon">💎</div>
+            <div class="game-title">Шторм</div>
+        </div>
+        <div class="game-card case" onclick="tg.showAlert('Кейсы запускаются!')">
+            <div class="game-players">🟢 126 играют</div>
+            <div class="game-icon">🐮</div>
+            <div class="game-title">Кейсы</div>
+        </div>
+        <div class="game-card pvp" onclick="tg.showAlert('PvP запускается!')">
+            <div class="game-players">🟢 1709 играют</div>
+            <div class="game-icon">⚔️</div>
+            <div class="game-title">PvP</div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active">🎮 Игры</div>
+        <div class="nav-item">📦 Кейсы</div>
+        <div class="nav-item">💼 Заработок</div>
+        <div class="nav-item">🎁 Бонусы</div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        
+        // Твой баланс для теста
+        let currentBalance = 137382; 
+        document.getElementById('balanceDisplay').innerText = currentBalance;
+
+        // При нажатии на карточку игры - отправляем боту сигнал
+        function startGame(gameName) {
+            tg.sendData(JSON.stringify({ action: "start_game", game: gameName }));
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gift Vova App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #10111a; color: white; padding-bottom: 70px; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #10111a; position: sticky; top: 0; z-index: 10; }
+        .logo { font-size: 20px; font-weight: 900; }
+        .balance-chip { background: #1c1e2e; padding: 8px 12px; border-radius: 20px; font-weight: bold; }
+        
+        .tab-content { display: none; padding: 15px; }
+        .tab-content.active { display: block; }
+
+        /* Магазин */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .shop-card { background: #1c1e2e; border-radius: 16px; padding: 15px; text-align: center; border: 1px solid #2a2e38; }
+        .shop-icon { font-size: 40px; margin-bottom: 10px; }
+        .shop-title { font-size: 14px; color: #8b8e96; }
+        .shop-price { font-weight: bold; font-size: 16px; color: #ffdb4b; margin: 5px 0; }
+        .buy-btn { background-color: #2481cc; color: white; border: none; padding: 8px 15px; border-radius: 8px; width: 100%; cursor: pointer; font-weight: bold; }
+
+        /* Инвентарь */
+        .inventory-item { display: flex; justify-content: space-between; align-items: center; background: #1c1e2e; padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #2a2e38; }
+        .inv-icon { font-size: 30px; }
+        .inv-name { font-weight: bold; flex: 1; margin-left: 15px; }
+        .use-btn { background: #ffdb4b; color: black; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+        /* Апгрейд */
+        #view-upgrade { display: none; }
+        .upg-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .back-btn { background: #2a2e38; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        
+        .wheel-container { position: relative; width: 200px; height: 200px; margin: 0 auto; }
+        .arrow-up { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 25px solid white; z-index: 10; }
+        .wheel { width: 100%; height: 100%; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 0 20px rgba(0,0,0,0.5); transition: transform 4s cubic-bezier(0.1, 0.7, 0.1, 1); position: relative; overflow: hidden; }
+        .chance-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 24px; font-weight: bold; color: #fff; text-shadow: 1px 1px 3px black; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 20px; }
+        
+        .slots { display: flex; justify-content: space-between; align-items: center; margin: 25px 0; background: #171a21; padding: 15px; border-radius: 12px; border: 1px solid #2a2e38; }
+        .slot { text-align: center; width: 45%; }
+        .slot-item { font-size: 35px; background: #0f1115; padding: 10px; border-radius: 10px; border: 1px solid #2a2e38; }
+        .slot-name { font-size: 11px; color: #8b8e96; margin-top: 5px; }
+        .arrow { font-size: 20px; color: #ffdb4b; }
+
+        .controls { display: flex; gap: 10px; margin-bottom: 10px; }
+        .control-btn { flex: 1; background: #2a2e38; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .control-btn.active { background: #ffdb4b; color: black; }
+        
+        .action-btn { width: 100%; background: linear-gradient(90deg, #ff4b4b, #ffdb4b); color: black; border: none; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background-color: #171a21; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #2a2e38; z-index: 20; }
+        .nav-item { text-align: center; color: #8b8e96; font-size: 11px; font-weight: bold; cursor: pointer; }
+        .nav-item.active { color: #a279f9; }
+        .nav-icon { font-size: 18px; margin-bottom: 3px; }
+    </style>
+</head>
+<body>
+    
+    <div class="header">
+        <div class="logo">Gift Vova</div>
+        <div class="balance-chip">💰 <span id="balanceDisplay">137382</span></div>
+    </div>
+
+    <!-- ВКЛАДКА 1: ИГРЫ -->
+    <div id="tab-games" class="tab-content active">
+        <div id="view-games-list">
+            <div class="grid">
+                <div class="shop-card" onclick="openUpgrade()" style="background: linear-gradient(180deg, #5e1a1a, #1c1e2e); cursor: pointer;">
+                    <div class="shop-icon">🏛️</div>
+                    <div style="font-size: 16px; font-weight: bold;">Апгрейд</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Экран Апгрейда -->
+        <div id="view-upgrade">
+            <div class="upg-header">
+                <button class="back-btn" onclick="closeUpgrade()">⬅️ Назад</button>
+                <div style="font-weight: bold;">Апгрейдер</div>
+            </div>
+
+            <div class="wheel-container">
+                <div class="arrow-up"></div>
+                <div class="wheel" id="wheel">
+                    <div class="chance-text" id="chanceText">50%</div>
+                </div>
+            </div>
+
+            <div class="slots">
+                <div class="slot">
+                    <div class="slot-item" id="slotFromIcon">❓</div>
+                    <div class="slot-name" id="slotFromName">Выбери подарок</div>
+                </div>
+                <div class="arrow">➡️</div>
+                <div class="slot">
+                    <div class="slot-item" id="slotToIcon">🐉</div>
+                    <div class="slot-name" id="slotToName">NFT Дракон</div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="control-btn active" onclick="setMultiplier(2, this)">x2</button>
+                <button class="control-btn" onclick="setMultiplier(3, this)">x3</button>
+                <button class="control-btn" onclick="setMultiplier(4, this)">x4</button>
+            </div>
+
+            <button class="action-btn" onclick="doUpgrade()">Прокачать</button>
+        </div>
+    </div>
+
+    <!-- ВКЛАДКА 2: МАГАЗИН -->
+    <div id="tab-shop" class="tab-content">
+        <h2 style="margin-bottom: 15px;">Магазин</h2>
+        <div class="grid">
+            <div class="shop-card"><div class="shop-icon">🌹</div><div class="shop-title">Роза</div><div class="shop-price">25</div><button class="buy-btn" onclick="buyItem('Роза', 25, '🌹')">Купить</button></div>
+            <div class="shop-card"><div class="shop-icon">🧸</div><div class="shop-title">Мишка</div><div class="shop-price">15</div><button class="buy-btn" onclick="buyItem('Мишка', 15, '🧸')">Купить</button></div>
+            <div class="shop-card"><div class="shop-icon">🎂</div><div class="shop-title">Торт</div><div class="shop-price">50</div><button class="buy-btn" onclick="buyItem('Торт', 50, '🎂')">Купить</button></div>
+            <div class="shop-card"><div class="shop-icon">💎</div><div class="shop-title">Алмаз</div><div class="shop-price">200</div><button class="buy-btn" onclick="buyItem('Алмаз', 200, '💎')">Купить</button></div>
+            <div class="shop-card"><div class="shop-icon">👑</div><div class="shop-title">Корона</div><div class="shop-price">1000</div><button class="buy-btn" onclick="buyItem('Корона', 1000, '👑')">Купить</button></div>
+            <div class="shop-card"><div class="shop-icon">🐉</div><div class="shop-title">NFT Дракон</div><div class="shop-price">10000</div><button class="buy-btn" onclick="buyItem('NFT Дракон', 10000, '🐉')">Купить</button></div>
+        </div>
+    </div>
+
+    <!-- ВКЛАДКА 3: ПРОФИЛЬ -->
+    <div id="tab-profile" class="tab-content">
+        <h2 style="margin-bottom: 15px;">Мой Инвентарь</h2>
+        <div id="inventoryList">
+            <p style="color: #8b8e96;">У тебя пока нет подарков. Купи их в магазине!</p>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('games', this)"><div class="nav-icon">🎮</div>Игры</div>
+        <div class="nav-item" onclick="switchTab('shop', this)"><div class="nav-icon">🛒</div>Магазин</div>
+        <div class="nav-item" onclick="switchTab('profile', this)"><div class="nav-icon">👤</div>Профиль</div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        
+        let balance = 137382;
+        let currentMultiplier = 2;
+        let currentChance = 50;
+        let isSpinning = false;
+        
+        let inventory = []; 
+        let selectedItem = null;
+
+        function updateBalance() {
+            document.getElementById('balanceDisplay').innerText = balance;
+        }
+
+        function switchTab(tabName, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            btn.classList.add('active');
+
+            if (tabName === 'games') closeUpgrade();
+            if (tabName === 'profile') renderInventory();
+        }
+
+        function buyItem(name, price, icon) {
+            if (balance >= price) {
+                balance -= price;
+                inventory.push({ name: name, icon: icon });
+                updateBalance();
+                tg.showAlert(`Ты купил ${name}!`);
+                tg.sendData(JSON.stringify({ action: "buy", item: name, price: price }));
+            } else {
+                tg.showAlert("Недостаточно баллов!");
+            }
+        }
+
+        function renderInventory() {
+            const list = document.getElementById('inventoryList');
+            if (inventory.length === 0) {
+                list.innerHTML = '<p style="color: #8b8e96;">У тебя пока нет подарков. Купи их в магазине!</p>';
+                return;
+            }
+            
+            list.innerHTML = '';
+            inventory.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'inventory-item';
+                div.innerHTML = `
+                    <div class="inv-icon">${item.icon}</div>
+                    <div class="inv-name">${item.name}</div>
+                    <button class="use-btn" onclick="selectForUpgrade(${index})">В апгрейд</button>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function selectForUpgrade(index) {
+            selectedItem = inventory[index];
+            document.getElementById('slotFromIcon').innerText = selectedItem.icon;
+            document.getElementById('slotFromName').innerText = selectedItem.name;
+            
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-games').classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item')[0].classList.add('active');
+            
+            openUpgrade();
+            tg.showAlert(`Подарок ${selectedItem.name} выбран для апгрейда!`);
+        }
+
+        function openUpgrade() {
+            document.getElementById('view-games-list').style.display = 'none';
+            document.getElementById('view-upgrade').style.display = 'block';
+        }
+
+        function closeUpgrade() {
+            document.getElementById('view-upgrade').style.display = 'none';
+            document.getElementById('view-games-list').style.display = 'block';
+        }
+
+        function setMultiplier(mult, btn) {
+            if (isSpinning) return;
+            currentMultiplier = mult;
+            document.querySelectorAll('.control-btn').forEach(b => {
+                if (b.innerText.includes('x')) b.classList.remove('active');
+            });
+            btn.classList.add('active');
+            currentChance = Math.round(100 / mult);
+            updateWheel();
+        }
+
+        function updateWheel() {
+            const wheel = document.getElementById('wheel');
+            document.getElementById('chanceText').innerText = `${currentChance}%`;
+            const winAngle = currentChance * 3.6;
+            
+            wheel.style.background = `conic-gradient(
+                #4bff4b 0deg ${winAngle}deg, 
+                #2a2e38 ${winAngle}deg 360deg
+            )`;
+        }
+
+        function doUpgrade() {
+            if (isSpinning) return;
+            if (!selectedItem) {
+                tg.showAlert("Сначала выбери подарок в Профиле!");
+                return;
+            }
+            
+            isSpinning = true;
+            const wheel = document.getElementById('wheel');
+            const chanceText = document.getElementById('chanceText');
+            
+            const win = Math.random() * 100 < currentChance;
+            let targetAngle;
+            
+            if (win) {
+                const winAngle = currentChance * 3.6;
+                targetAngle = Math.random() * winAngle;
+                chanceText.innerText = "🎉 Успех!";
+            } else {
+                const winAngle = currentChance * 3.6;
+                targetAngle = winAngle + (Math.random() * (360 - winAngle));
+                chanceText.innerText = "Бывает :(";
+            }
+
+            const totalRotation = 360 * 5 + targetAngle;
+            wheel.style.transform = `rotate(${totalRotation}deg)`;
+
+            setTimeout(() => {
+                isSpinning = false;
+                if (win) {
+                    tg.showAlert(`🎉 Успех! Ты улучшил ${selectedItem.name}!`);
+                } else {
+                    tg.showAlert(`😔 Бывает :( Подарок сгорел.`);
+                    const index = inventory.indexOf(selectedItem);
+                    if (index > -1) inventory.splice(index, 1);
+                    selectedItem = null;
+                    document.getElementById('slotFromIcon').innerText = "❓";
+                    document.getElementById('slotFromName').innerText = "Выбери подарок";
+                    renderInventory();
+                }
+                
+                tg.sendData(JSON.stringify({ action: "upgrade", win: win, multiplier: currentMultiplier }));
+                
+                setTimeout(() => {
+                    updateWheel();
+                }, 2000);
+            }, 4100);
+        }
+
+        updateBalance();
+        updateWheel();
+    </script>
+</body>
+</html>

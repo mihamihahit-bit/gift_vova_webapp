@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gift Vova App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #10111a; color: white; padding-bottom: 70px; transition: background 0.3s; }
+
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #10111a; position: sticky; top: 0; z-index: 10; }
+        .logo { font-size: 20px; font-weight: 900; }
+        .balance-chip { background: #1c1e2e; padding: 8px 12px; border-radius: 20px; font-weight: bold; }
+
+        .tab-content { display: none; padding: 15px; }
+        .tab-content.active { display: block; }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .shop-card { background: #1c1e2e; border-radius: 16px; padding: 15px; text-align: center; border: 1px solid #2a2e38; }
+        .shop-icon { font-size: 40px; margin-bottom: 10px; }
+        .shop-title { font-size: 14px; color: #8b8e96; }
+        .shop-price { font-weight: bold; font-size: 16px; color: #ffdb4b; margin: 5px 0; }
+        .buy-btn { background-color: #2481cc; color: white; border: none; padding: 8px 15px; border-radius: 8px; width: 100%; cursor: pointer; font-weight: bold; }
+
+        .inventory-item { display: flex; justify-content: space-between; align-items: center; background: #1c1e2e; padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #2a2e38; }
+        .inv-icon { font-size: 30px; }
+        .inv-name { font-weight: bold; flex: 1; margin-left: 15px; }
+        .use-btn { background: #ffdb4b; color: black; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+        #view-upgrade { display: none; }
+        .upg-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .back-btn { background: #2a2e38; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+        .wheel-container { position: relative; width: 220px; height: 220px; margin: 20px auto; }
+        .wheel { width: 100%; height: 100%; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 0 20px rgba(0,0,0,0.5); position: relative; overflow: hidden; }
+        .chance-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 22px; font-weight: bold; color: #fff; text-shadow: 1px 1px 3px black; background: rgba(0,0,0,0.6); padding: 6px 16px; border-radius: 20px; z-index: 5; }
+
+        .arrow-pointer {
+            position: absolute; top: 50%; left: 50%;
+            width: 4px; height: 95px;
+            background: linear-gradient(to top, #ffdb4b, #ff4b4b);
+            transform-origin: bottom center;
+            transform: translate(-50%, -100%) rotate(0deg);
+            z-index: 15; border-radius: 2px;
+            box-shadow: 0 0 10px rgba(255,219,75,0.8);
+        }
+        .arrow-pointer::before {
+            content: ''; position: absolute; top: -12px; left: 50%;
+            transform: translateX(-50%);
+            border-left: 9px solid transparent;
+            border-right: 9px solid transparent;
+            border-bottom: 16px solid #ffdb4b;
+        }
+        .wheel-center-dot {
+            position: absolute; top: 50%; left: 50%;
+            width: 22px; height: 22px; background: #ffdb4b;
+            border-radius: 50%; transform: translate(-50%, -50%);
+            z-index: 20; box-shadow: 0 0 15px #ffdb4b;
+        }
+
+        .slots { display: flex; justify-content: space-between; align-items: center; margin: 25px 0; background: #171a21; padding: 15px; border-radius: 12px; border: 1px solid #2a2e38; }
+        .slot { text-align: center; width: 45%; }
+        .slot-item { font-size: 35px; background: #0f1115; padding: 10px; border-radius: 10px; border: 1px solid #2a2e38; }
+        .slot-name { font-size: 11px; color: #8b8e96; margin-top: 5px; }
+        .arrow { font-size: 20px; color: #ffdb4b; }
+
+        .controls { display: flex; gap: 10px; margin-bottom: 10px; }
+        .control-btn { flex: 1; background: #2a2e38; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .control-btn.active { background: #ffdb4b; color: black; }
+
+        .action-btn { width: 100%; background: linear-gradient(90deg, #ff4b4b, #ffdb4b); color: black; border: none; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: opacity 0.2s; }
+        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background-color: #171a21; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #2a2e38; z-index: 20; }
+        .nav-item { text-align: center; color: #8b8e96; font-size: 11px; font-weight: bold; cursor: pointer; }
+        .nav-item.active { color: #a279f9; }
+        .nav-icon { font-size: 18px; margin-bottom: 3px; }
+
+        .result-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            display: none; align-items: center; justify-content: center;
+            z-index: 100; flex-direction: column; padding: 20px;
+        }
+        .result-modal.show { display: flex; animation: fadeIn 0.3s; }
+        .result-card {
+            background: #1c1e2e; border-radius: 20px; padding: 30px;
+            text-align: center; max-width: 320px; width: 100%;
+            border: 2px solid #2a2e38;
+        }
+        .result-card.win { border-color: #4bff4b; box-shadow: 0 0 40px rgba(75,255,75,0.4); }
+        .result-card.lose { border-color: #ff4b4b; box-shadow: 0 0 40px rgba(255,75,75,0.4); }
+        .result-icon { font-size: 70px; margin-bottom: 15px; }
+        .result-title { font-size: 24px; font-weight: 900; margin-bottom: 10px; }
+        .result-sub { color: #8b8e96; margin-bottom: 20px; font-size: 14px; }
+        .result-btn {
+            background: #ffdb4b; color: black; border: none;
+            padding: 12px 30px; border-radius: 10px; font-weight: bold;
+            cursor: pointer; width: 100%; font-size: 15px;
+        }
+
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            20%,60% { transform: translateX(-10px); }
+            40%,80% { transform: translateX(10px); }
+        }
+        .shake { animation: shake 0.5s; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .flash-win { animation: flashGold 0.6s; }
+        .flash-lose { animation: flashRed 0.6s; }
+        @keyframes flashGold { 0%,100% { background: #10111a; } 50% { background: #3a3000; } }
+        @keyframes flashRed  { 0%,100% { background: #10111a; } 50% { background: #3a0000; } }
+
+        .confetti {
+            position: fixed; width: 8px; height: 8px; top: -10px;
+            animation: fall linear forwards; z-index: 99; pointer-events: none;
+        }
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo">Gift Vova</div>
+        <div class="balance-chip">💰 <span id="balanceDisplay">137382</span></div>
+    </div>
+
+    <div id="tab-games" class="tab-content active">
+        <div id="view-games-list">
+            <div class="grid">
+                <div class="shop-card" onclick="openUpgrade()" style="background: linear-gradient(180deg, #5e1a1a, #1c1e2e); cursor: pointer;">
+                    <div class="shop-icon">🏛️</div>
+                    <div style="font-size: 16px; font-weight: bold;">Апгрейд</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-upgrade">
+            <div class="upg-header">
+                <button class="back-btn" onclick="closeUpgrade()">⬅️ Назад</button>
+                <div style="font-weight: bold;">Апгрейдер</div>
+            </div>
+
+            <div class="wheel-container">
+                <div class="wheel" id="wheel">
+                    <div class="chance-text" id="chanceText">50%</div>
+                </div>
+                <div class="arrow-pointer" id="arrowPointer"></div>
+                <div class="wheel-center-dot"></div>
+            </div>
+
+            <div class="slots">
+                <div class="slot">
+                    <div class="slot-item" id="slotFromIcon">❓</div>
+                    <div class="slot-name" id="slotFromName">Выбери подарок</div>
+                </div>
+                <div class="arrow">➡️</div>
+                <div class="slot">
+                    <div class="slot-item" id="slotToIcon">🐉</div>
+                    <div class="slot-name" id="slotToName">NFT Дракон</div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="control-btn active" onclick="setMultiplier(2, this)">x2</button>
+                <button class="control-btn" onclick="setMultiplier(3, this)">x3</button>
+                <button class="control-btn" onclick="setMultiplier(4, this)">x4</button>
+            </div>
+
+            <button class="action-btn" id="upgradeBtn" onclick="doUpgrade()">Прокачать</button>
+        </div>
+    </div>
+
+    <div id="tab-shop" class="tab-content">
+        <h2 style="margin-bottom: 15px;">Магазин</h2>
+        <div class="grid">
+            <div class="shop-card"><div class="shop-icon">🌹</div><div class="shop-title">Роза</div><div class="shop-price">25</div><button class="buy-btn" onclick="buyItem('Роза', 25, '🌹')">Купить</button></div>
+            <div class="shop-card"><div class="shop-icon">🧸</div><div class="shop-title">Мишка</div><div class="shop-price">15</div><button class="buy-btn" onclick="buyItem('Мишка', 15, '🧸')">Купить</button></div>
+            <div class="shop-card"><div class="shop-icon">🎂</div><div class="shop-title">Торт</div><div class="shop-price">50</div><button class="buy-btn" onclick="buyItem('Торт', 50, '🎂')">Купить</button></div>
+            <div class="shop-card"><div class="shop-icon">💎</div><div class="shop-title">Алмаз</div><div class="shop-price">200</div><button class="buy-btn" onclick="buyItem('Алмаз', 200, '💎')">Купить</button></div>
+            <div class="shop-card"><div class="shop-icon">👑</div><div class="shop-title">Корона</div><div class="shop-price">1000</div><button class="buy-btn" onclick="buyItem('Корона', 1000, '👑')">Купить</button></div>
+            <div class="shop-card"><div class="shop-icon">🐉</div><div class="shop-title">NFT Дракон</div><div class="shop-price">10000</div><button class="buy-btn" onclick="buyItem('NFT Дракон', 10000, '🐉')">Купить</button></div>
+        </div>
+    </div>
+
+    <div id="tab-profile" class="tab-content">
+        <h2 style="margin-bottom: 15px;">Мой Инвентарь</h2>
+        <div id="inventoryList">
+            <p style="color: #8b8e96;">У тебя пока нет подарков. Купи их в магазине!</p>
+        </div>
+    </div>
+
+    <div class="result-modal" id="resultModal">
+        <div class="result-card" id="resultCard">
+            <div class="result-icon" id="resultIcon">🎉</div>
+            <div class="result-title" id="resultTitle">УСПЕХ!</div>
+            <div class="result-sub" id="resultSub"></div>
+            <button class="result-btn" onclick="closeResult()">Забрать</button>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('games', this)"><div class="nav-icon">🎮</div>Игры</div>
+        <div class="nav-item" onclick="switchTab('shop', this)"><div class="nav-icon">🛒</div>Магазин</div>
+        <div class="nav-item" onclick="switchTab('profile', this)"><div class="nav-icon">👤</div>Профиль</div>
+    </div>
+
+    <script>
+        const tg = window.Telegram ? window.Telegram.WebApp : { expand: () => {}, showAlert: (m) => alert(m), sendData: () => {}, initData: "" };
+        if (tg.expand) tg.expand();
+
+        let balance = 137382;
+        let currentMultiplier = 2;
+        let currentChance = 50;
+        let isSpinning = false;
+
+        let inventory = [];
+        let selectedItem = null;
+
+        function updateBalance() {
+            document.getElementById('balanceDisplay').innerText = balance;
+        }
+
+        function switchTab(tabName, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            btn.classList.add('active');
+            if (tabName === 'games') closeUpgrade();
+            if (tabName === 'profile') renderInventory();
+        }
+
+        function buyItem(name, price, icon) {
+            if (balance >= price) {
+                balance -= price;
+                inventory.push({ name, icon });
+                updateBalance();
+                tg.showAlert(`Ты купил ${name}!`);
+            } else {
+                tg.showAlert("Недостаточно баллов!");
+            }
+        }
+
+        function renderInventory() {
+            const list = document.getElementById('inventoryList');
+            if (inventory.length === 0) {
+                list.innerHTML = '<p style="color: #8b8e96;">У тебя пока нет подарков. Купи их в магазине!</p>';
+                return;
+            }
+            list.innerHTML = '';
+            inventory.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'inventory-item';
+                div.innerHTML = `
+                    <div class="inv-icon">${item.icon}</div>
+                    <div class="inv-name">${item.name}</div>
+                    <button class="use-btn" onclick="selectForUpgrade(${index})">В апгрейд</button>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function selectForUpgrade(index) {
+            selectedItem = inventory[index];
+            document.getElementById('slotFromIcon').innerText = selectedItem.icon;
+            document.getElementById('slotFromName').innerText = selectedItem.name;
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-games').classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item')[0].classList.add('active');
+            openUpgrade();
+        }
+
+        function openUpgrade() {
+            document.getElementById('view-games-list').style.display = 'none';
+            document.getElementById('view-upgrade').style.display = 'block';
+        }
+
+        function closeUpgrade() {
+            document.getElementById('view-upgrade').style.display = 'none';
+            document.getElementById('view-games-list').style.display = 'block';
+        }
+
+        function setMultiplier(mult, btn) {
+            if (isSpinning) return;
+            currentMultiplier = mult;
+            document.querySelectorAll('.control-btn').forEach(b => {
+                if (b.innerText.includes('x')) b.classList.remove('active');
+            });
+            btn.classList.add('active');
+            currentChance = Math.round(100 / mult);
+            updateWheel();
+        }
+
+        function updateWheel() {
+            const wheel = document.getElementById('wheel');
+            document.getElementById('chanceText').innerText = `${currentChance}%`;
+            const winAngle = currentChance * 3.6;
+            wheel.style.background = `conic-gradient(
+                #4bff4b 0deg ${winAngle}deg,
+                #2a2e38 ${winAngle}deg 360deg
+            )`;
+            const arrow = document.getElementById('arrowPointer');
+            arrow.style.transition = 'none';
+            arrow.style.transform = 'translate(-50%, -100%) rotate(0deg)';
+        }
+
+        function playSound(type) {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                if (type === 'win') {
+                    osc.frequency.setValueAtTime(523, ctx.currentTime);
+                    osc.frequency.setValueAtTime(784, ctx.currentTime + 0.1);
+                    osc.frequency.setValueAtTime(1046, ctx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+                    osc.start(); osc.stop(ctx.currentTime + 0.4);
+                } else {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(200, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.4);
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+                    osc.start(); osc.stop(ctx.currentTime + 0.5);
+                }
+            } catch (e) {}
+        }
+
+        function spawnConfetti() {
+            const colors = ['#4bff4b', '#ffdb4b', '#ff4b4b', '#a279f9', '#2481cc'];
+            for (let i = 0; i < 40; i++) {
+                const c = document.createElement('div');
+                c.className = 'confetti';
+                c.style.left = Math.random() * 100 + 'vw';
+                c.style.background = colors[Math.floor(Math.random() * colors.length)];
+                c.style.animationDuration = (1.5 + Math.random() * 1.5) + 's';
+                c.style.animationDelay = Math.random() * 0.5 + 's';
+                document.body.appendChild(c);
+                setTimeout(() => c.remove(), 3500);
+            }
+        }
+
+        async function doUpgrade() {
+            if (isSpinning) return;
+            if (!selectedItem) {
+                tg.showAlert("Сначала выбери подарок в Профиле!");
+                return;
+            }
+
+            isSpinning = true;
+            document.getElementById('upgradeBtn').disabled = true;
+
+            const arrow = document.getElementById('arrowPointer');
+            const chanceText = document.getElementById('chanceText');
+            chanceText.innerText = "Крутим...";
+
+            let serverResult = null;
+            try {
+                const response = await fetch('/api/spin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        initData: tg.initData || "",
+                        multiplier: currentMultiplier
+                    })
+                });
+                serverResult = await response.json();
+                if (!response.ok) throw new Error(serverResult.error || 'Server error');
+            } catch (e) {
+                isSpinning = false;
+                document.getElementById('upgradeBtn').disabled = false;
+                chanceText.innerText = `${currentChance}%`;
+                tg.showAlert('Ошибка сервера: ' + e.message);
+                return;
+            }
+
+            const win = serverResult.win;
+            const targetAngle = serverResult.target_angle;
+
+            const totalRotation = 360 * 6 + targetAngle;
+
+            arrow.style.transition = 'none';
+            arrow.style.transform = 'translate(-50%, -100%) rotate(0deg)';
+            void arrow.offsetWidth;
+            arrow.style.transition = 'transform 4s cubic-bezier(0.15, 0.85, 0.25, 1)';
+            arrow.style.transform

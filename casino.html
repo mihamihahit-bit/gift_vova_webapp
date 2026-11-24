@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gift Vova Casino</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #0d0f18; color: white; padding-bottom: 20px; }
+        
+        /* Шапка */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #151824; border-bottom: 1px solid #2b3042; position: sticky; top: 0; z-index: 10; }
+        .logo { font-size: 20px; font-weight: 900; color: #8865ff; }
+        .balance-chip { background: #1d2130; padding: 8px 15px; border-radius: 20px; font-weight: bold; color: #45dfa3; font-size: 18px; border: 1px solid #2b3042; }
+        
+        /* Меню игр */
+        .games-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
+        .game-btn { background: #151824; border: 1px solid #2b3042; border-radius: 16px; padding: 20px 10px; text-align: center; cursor: pointer; transition: 0.2s; }
+        .game-btn:hover { border-color: #8865ff; transform: translateY(-2px); }
+        .game-icon { font-size: 40px; margin-bottom: 10px; }
+        .game-title { font-size: 14px; font-weight: bold; }
+        
+        /* Игровое поле */
+        #game-screen { display: none; padding: 20px; }
+        .back-btn { background: #2b3042; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; margin-bottom: 20px; cursor: pointer; }
+        
+        .result-box { background: #151824; border: 1px solid #2b3042; border-radius: 16px; padding: 30px; text-align: center; margin-bottom: 20px; min-height: 150px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .result-text { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+        .result-sub { color: #858ba1; font-size: 14px; }
+        
+        /* Кнопка ставки */
+        .bet-btn { background: linear-gradient(90deg, #8865ff, #a15eff); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        .bet-btn:active { transform: scale(0.98); }
+        
+        /* Анимации для Плинко */
+        .plinko-ball { width: 30px; height: 30px; background: #45dfa3; border-radius: 50%; margin: 0 auto; box-shadow: 0 0 15px #45dfa3; }
+        .multipliers { display: flex; justify-content: space-around; margin-top: 20px; font-size: 12px; color: #858ba1; }
+    </style>
+</head>
+<body>
+    
+    <div class="header">
+        <div class="logo">Gift Vova</div>
+        <div class="balance-chip">💰 <span id="balanceDisplay">1000</span></div>
+    </div>
+
+    <!-- ГЛАВНОЕ МЕНЮ -->
+    <div id="menu-screen" class="games-menu">
+        <div class="game-btn" onclick="openGame('plane')">
+            <div class="game-icon">✈️</div>
+            <div class="game-title">Plane</div>
+        </div>
+        <div class="game-btn" onclick="openGame('plinko')">
+            <div class="game-icon">🔵</div>
+            <div class="game-title">Plinko</div>
+        </div>
+        <div class="game-btn" onclick="openGame('upgrade')">
+            <div class="game-icon">⬆️</div>
+            <div class="game-title">Апгрейд</div>
+        </div>
+        <div class="game-btn" onclick="openGame('contract')">
+            <div class="game-icon">📜</div>
+            <div class="game-title">Контракт</div>
+        </div>
+        <div class="game-btn" onclick="openGame('pvp')" style="grid-column: 1 / -1;">
+            <div class="game-icon">⚔️</div>
+            <div class="game-title">PvP против бота</div>
+        </div>
+    </div>
+
+    <!-- ЭКРАН ИГРЫ -->
+    <div id="game-screen">
+        <button class="back-btn" onclick="closeGame()">⬅️ Назад</button>
+        
+        <div class="result-box" id="resultBox">
+            <div class="result-text" id="resultText">Сделай ставку!</div>
+            <div class="result-sub" id="resultSub">Ставка: 10 монет</div>
+        </div>
+
+        <!-- Анимация для Плинко -->
+        <div id="plinkoAnim" style="display: none; text-align: center; margin-bottom: 20px;">
+            <div class="plinko-ball" id="ball"></div>
+            <div class="multipliers"><span>x0</span><span>x0.5</span><span>x1</span><span>x2</span><span>x5</span></div>
+        </div>
+
+        <button class="bet-btn" id="betBtn" onclick="playGame()">Играть (10 🪙)</button>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        let balance = 1000;
+        const bet = 10;
+        let currentGame = null;
+        let isPlaying = false;
+
+        function updateBalance() {
+            document.getElementById('balanceDisplay').innerText = balance;
+        }
+
+        function openGame(game) {
+            currentGame = game;
+            document.getElementById('menu-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            document.getElementById('resultText').innerText = "Готов?";
+            document.getElementById('resultSub').innerText = `Ставка: ${bet} монет`;
+            document.getElementById('plinkoAnim').style.display = 'none';
+        }
+
+        function closeGame() {
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('menu-screen').style.display = 'grid';
+        }
+
+        function playGame() {
+            if (isPlaying) return;
+            if (balance < bet) {
+                tg.showAlert("Недостаточно монет!");
+                return;
+            }
+
+            balance -= bet;
+            updateBalance();
+            isPlaying = true;
+            document.getElementById('betBtn').disabled = true;
+            document.getElementById('betBtn').innerText = "Игра...";
+
+            if (currentGame === 'plinko') {
+                document.getElementById('plinkoAnim').style.display = 'block';
+                const ball = document.getElementById('ball');
+                ball.style.transform = 'translateY(-50px)';
+                setTimeout(() => { ball.style.transform = 'translateY(50px)'; }, 100);
+            }
+
+            setTimeout(() => {
+                let result = "";
+                let win = false;
+
+                if (currentGame === 'plane') {
+                    const mult = (Math.random() * 3).toFixed(2);
+                    if (mult >= 1.5) {
+                        const payout = Math.floor(bet * mult);
+                        balance += payout;
+                        result = `✈️ Самолёт улетел на x${mult}! Выигрыш: ${payout} 🪙`;
+                        win = true;
+                    } else {
+                        result = `✈️ Самолёт улетел на x${mult}. Ставка потеряна.`;
+                    }
+                } 
+                else if (currentGame === 'plinko') {
+                    const mults = [0, 0.5, 1, 2, 5];
+                    const mult = mults[Math.floor(Math.random() * mults.length)];
+                    const payout = Math.floor(bet * mult);
+                    balance += payout;
+                    result = `🔵 Выпал x${mult}! Выигрыш: ${payout} 🪙`;
+                    win = mult > 0;
+                }
+                else if (currentGame === 'upgrade') {
+                    if (Math.random() < 0.45) {
+                        balance += bet * 2;
+                        result = `⬆️ Апгрейд успешен! Выигрыш: ${bet * 2} 🪙`;
+                        win = true;
+                    } else {
+                        result = "⬆️ Апгрейд не удался. Ставка потеряна.";
+                    }
+                }
+                else if (currentGame === 'contract') {
+                    if (Math.random() < 0.5) {
+                        balance += bet * 2;
+                        result = `📜 Контракт выполнен! Выигрыш: ${bet * 2} 🪙`;
+                        win = true;
+                    } else {
+                        result = "📜 Контракт провален. Ставка потеряна.";
+                    }
+                }
+                else if (currentGame === 'pvp') {
+                    if (Math.random() < 0.5) {
+                        balance += bet * 2;
+                        result = `⚔️ Ты победил бота! Выигрыш: ${bet * 2} 🪙`;
+                        win = true;
+                    } else {
+                        result = "⚔️ Бот победил. Ставка потеряна.";
+                    }
+                }
+
+                updateBalance();
+                document.getElementById('resultText').innerText = win ? "🎉 Победа!" : "😔 Проигрыш";
+                document.getElementById('resultText').style.color = win ? "#45dfa3" : "#ff637a";
+                document.getElementById('resultSub').innerText = result;
+                document.getElementById('plinkoAnim').style.display = 'none';
+                
+                isPlaying = false;
+                document.getElementById('betBtn').disabled = false;
+                document.getElementById('betBtn').innerText = `Играть (${bet} 🪙)`;
+
+                // Отправка данных боту (если нужно)
+                tg.sendData(JSON.stringify({ action: "casino", game: currentGame, win: win }));
+            }, 1500);
+        }
+
+        updateBalance();
+    </script>
+</body>
+</html>

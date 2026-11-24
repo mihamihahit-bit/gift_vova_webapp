@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101117">
+  <title>Gorilla Case — демо</title>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101117;
+      --panel: #191b24;
+      --panel-light: #20232e;
+      --text: #f5f6fb;
+      --muted: #9699aa;
+      --purple: #9064ff;
+      --green: #58e0a0;
+      --border: rgba(255,255,255,.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(ellipse at 50% -15%, rgba(126, 83, 255, .22), transparent 45%),
+        var(--bg);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button { font: inherit; }
+
+    .app {
+      width: min(100%, 520px);
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 18px 16px 100px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 900;
+      letter-spacing: .4px;
+    }
+
+    .brand-icon {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background: linear-gradient(145deg, #a373ff, #6241dc);
+      box-shadow: 0 8px 25px #7048ed55;
+      font-size: 23px;
+    }
+
+    .brand small {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.7px;
+    }
+
+    .balance {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 13px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--panel);
+      font-weight: 800;
+    }
+
+    .coin { color: #ffd36a; }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 23px;
+      margin-bottom: 18px;
+      border: 1px solid rgba(174, 145, 255, .2);
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at 85% 35%, #bc75ff44, transparent 30%),
+        linear-gradient(130deg, #29203f, #1a1b29 65%);
+    }
+
+    .hero h1 {
+      max-width: 280px;
+      margin: 0 0 8px;
+      font-size: clamp(25px, 7vw, 34px);
+      line-height: 1.08;
+    }
+
+    .hero p {
+      max-width: 270px;
+      margin: 0;
+      color: #c2bfd1;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .hero-art {
+      position: absolute;
+      right: 17px;
+      bottom: 5px;
+      font-size: 82px;
+      filter: drop-shadow(0 8px 20px #a25aff55);
+      transform: rotate(-8deg);
+    }
+
+    .daily {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px;
+      margin-bottom: 25px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--panel);
+    }
+
+    .daily-title { font-weight: 800; }
+    .daily-sub { margin-top: 4px; color: var(--muted); font-size: 12px; }
+
+    .button {
+      border: 0;
+      border-radius: 12px;
+      padding: 11px 14px;
+      color: white;
+      background: linear-gradient(135deg, #966aff, #7048e8);
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform .15s, filter .15s;
+    }
+
+    .button:active { transform: scale(.96); }
+    .button:hover { filter: brightness(1.1); }
+    .button:disabled { opacity: .55; cursor: default; }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      margin: 0 2px 13px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 21px;
+    }
+
+    .section-head span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .cases {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .case-card {
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 19px;
+            background: var(--panel);
+    }
+
+    .case-art {
+      display: grid;
+      place-items: center;
+      height: 125px;
+      margin: 8px;
+      border-radius: 14px;
+      font-size: 59px;
+      background:
+        radial-gradient(circle at 50% 55%, var(--glow), transparent 48%),
+        linear-gradient(145deg, var(--art1), var(--art2));
+    }
+
+    .case-info { padding: 3px 12px 12px; }
+    .case-name { margin: 0 0 5px; font-size: 15px; font-weight: 850; }
+    .case-description { min-height: 30px; color: var(--muted); font-size: 11px; }
+
+    .case-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .price { white-space: nowrap; font-size: 13px; font-weight: 800; }
+    .open-button { padding: 9px 11px; font-size: 12px; }
+
+    .inventory-section { display: none; }
+    .inventory-section.active { display: block; }
+    .cases-section.hidden { display: none; }
+
+    .inventory-list { display: grid; gap: 10px; }
+
+    .inventory-item {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--panel);
+    }
+
+    .inventory-emoji {
+      display: grid;
+      place-items: center;
+      width: 52px;
+      height: 52px;
+      border-radius: 13px;
+      background: var(--panel-light);
+      font-size: 29px;
+    }
+
+    .inventory-item strong { display: block; }
+    .inventory-item small { display: block; margin-top: 4px; color: var(--muted); }
+
+    .empty {
+      padding: 35px 16px;
+      border: 1px dashed #ffffff25;
+      border-radius: 18px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      z-index: 5;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: flex;
+      justify-content: center;
+      padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+      background: linear-gradient(transparent, #101117 24%);
+    }
+
+    .nav-inner {
+      display: flex;
+      width: min(100%, 488px);
+      padding: 6px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: #1a1b24f2;
+      backdrop-filter: blur(12px);
+    }
+
+    .nav-button {
+      flex: 1;
+      padding: 10px;
+      border: 0;
+      border-radius: 13px;
+      color: var(--muted);
+      background: transparent;
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    .nav-button.active {
+      color: white;
+      background: #302744;
+    }
+
+    .modal {
+      position: fixed;
+      z-index: 10;
+      inset: 0;
+      display: none;
+      place-items: center;
+      padding: 20px;
+      background: #08090dd9;
+    }
+
+    .modal.show { display: grid; }
+
+    .modal-box {
+      width: min(100%, 360px);
+      padding: 24px;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background: #1b1c26;
+      text-align: center;
+      box-shadow: 0 20px 80px #0009;
+    }
+
+    .modal-box h2 { margin: 0 0 6px; }
+    .modal-box p { color: var(--muted); font-size: 13px; }
+
+    .spin-area {
+      display: grid;
+      place-items: center;
+      height: 150px;
+      margin: 18px 0;
+      border-radius: 18px;
+      background: radial-gradient(circle, #8157ff33, #11121a);
+    }
+
+    .spin-emoji {
+      font-size: 76px;
+      filter: drop-shadow(0 0 18px #a276ff88);
+    }
+
+    .spin-emoji.spinning { animation: spin .35s infinite alternate ease-in-out; }
+
+    @keyframes spin {
+      from { transform: translateY(-8px) rotate(-12deg) scale(.92); }
+      to { transform: translateY(8px) rotate(12deg) scale(1.08); }
+    }
+
+    .result-name {
+      min-height: 24px;
+      margin-bottom: 14px;
+      color: var(--green);
+      font-weight: 850;
+    }
+
+    .toast {
+      position: fixed;
+      z-index: 20;
+      top: 18px;
+      left: 50%;
+      max-width: calc(100% - 32px);
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #252633;
+      opacity: 0;
+      pointer-events: none;
+            transform: translate(-50%, -12px);
+      transition: .2s;
+    }
+
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    @media (max-width: 360px) {
+      .app { padding-right: 12px; padding-left: 12px; }
+      .case-art { height: 105px; }
+      .hero-art { right: 5px; font-size: 68px; }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon">🦍</div>
+        <div>GORILLA<small>CASE DEMO</small></div>
+      </div>
+      <div class="balance"><span class="coin">●</span><span id="balance">0</span></div>
+    </header>
+
+    <section class="hero">
+      <h1>Открывай.<br>Собирай. Побеждай.</h1>
+      <p>Открывай виртуальные кейсы и собирай коллекцию предметов.</p>
+      <div class="hero-art">🎁</div>
+    </section>
+
+    <section class="daily">
+      <div>
+        <div class="daily-title">🎁 Ежедневный бонус</div>
+        <div class="daily-sub">Забери бесплатные монеты</div>
+      </div>
+      <button class="button" id="dailyButton">Забрать</button>
+    </section>
+
+    <section class="cases-section" id="casesSection">
+      <div class="section-head">
+        <h2>Кейсы</h2>
+        <span>Выбери свой</span>
+      </div>
+      <div class="cases" id="cases"></div>
+    </section>
+
+    <section class="inventory-section" id="inventorySection">
+      <div class="section-head">
+        <h2>Инвентарь</h2>
+        <span id="inventoryCount">0 предметов</span>
+      </div>
+      <div class="inventory-list" id="inventoryList"></div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <div class="nav-inner">
+      <button class="nav-button active" data-page="cases">🎁 Кейсы</button>
+      <button class="nav-button" data-page="inventory">🎒 Инвентарь</button>
+    </div>
+  </nav>
+
+  <div class="modal" id="modal" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2 id="modalTitle">Открытие кейса</h2>
+      <p id="modalDescription">Смотрим, что внутри…</p>
+      <div class="spin-area"><div class="spin-emoji" id="spinEmoji">🎁</div></div>
+      <div class="result-name" id="resultName"></div>
+      <button class="button" id="closeModal" disabled>Открываем…</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const cases = [
+      {
+        name: "Неоновый",
+        description: "Яркие предметы для коллекции",
+        price: 250,
+        emoji: "💜",
+        colors: ["#49216e", "#221c3e"],
+        items: [
+          { name: "Неоновая звезда", emoji: "🌟", rarity: "Обычный" },
+          { name: "Фиолетовый кристалл", emoji: "🔮", rarity: "Редкий" },
+          { name: "Лунный кубок", emoji: "🏆", rarity: "Эпический" },
+          { name: "Корона ночи", emoji: "👑", rarity: "Легендарный" }
+        ]
+      },
+      {
+        name: "Золотой",
+        description: "Кейс с золотым настроением",
+        price: 600,
+        emoji: "👑",
+        colors: ["#77511d", "#30251b"],
+        items: [
+          { name: "Золотая монета", emoji: "🪙", rarity: "Обычный" },
+          { name: "Золотой слиток", emoji: "🟨", rarity: "Редкий" },
+          { name: "Королевский кубок", emoji: "🏆", rarity: "Эпический" },
+          { name: "Золотая корона", emoji: "👑", rarity: "Легендарный" }
+        ]
+      },
+      {
+        name: "Космический",
+        description: "Находки из далёкой галактики",
+        price: 950,
+        emoji: "🚀",
+        colors: ["#174b78", "#211d46"],
+        items: [
+          { name: "Маленькая планета", emoji: "🪐", rarity: "Обычный" },
+          { name: "Космический шлем", emoji: "🧑‍🚀", rarity: "Редкий" },
+          { name: "Звёздный портал", emoji: "🌀", rarity: "Эпический" },
+          { name: "Галактическая корона", emoji: "🌌", rarity: "Легендарный" }
+        ]
+      },
+      {
+        name: "Джунгли",
+        description: "Сокровища из тайного леса",
+        price: 400,
+        emoji: "🌴",
+        colors: ["#176044", "#1c342b"],
+        items: [
+          { name: "Лист джунглей", emoji: "🍃", rarity: "Обычный" },
+          { name: "Изумруд", emoji: "💚", rarity: "Редкий" },
+                    { name: "Тотем джунглей", emoji: "🗿", rarity: "Эпический" },
+          { name: "Золотой банан", emoji: "🍌", rarity: "Легендарный" }
+        ]
+      }
+    ];
+
+    const initialBalance = 1500;
+    let balance = Number(localStorage.getItem("gorilla-demo-balance"));
+    if (!Number.isFinite(balance)) balance = initialBalance;
+
+    let inventory = JSON.parse(localStorage.getItem("gorilla-demo-inventory") || "[]");
+    let busy = false;
+
+    const balanceElement = document.getElementById("balance");
+    const casesElement = document.getElementById("cases");
+    const modal = document.getElementById("modal");
+    const spinEmoji = document.getElementById("spinEmoji");
+    const closeModal = document.getElementById("closeModal");
+
+    function save() {
+      localStorage.setItem("gorilla-demo-balance", String(balance));
+      localStorage.setItem("gorilla-demo-inventory", JSON.stringify(inventory));
+      updateBalance();
+    }
+
+    function updateBalance() {
+      balanceElement.textContent = balance.toLocaleString("ru-RU");
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 2300);
+    }
+
+    function renderCases() {
+      casesElement.innerHTML = cases.map((item, index) => `
+        <article class="case-card">
+          <div class="case-art"
+            style="--art1:${item.colors[0]};--art2:${item.colors[1]};--glow:${item.colors[0]}aa">
+            ${item.emoji}
+          </div>
+          <div class="case-info">
+            <h3 class="case-name">${item.name}</h3>
+            <div class="case-description">${item.description}</div>
+            <div class="case-bottom">
+              <span class="price"><span class="coin">●</span> ${item.price}</span>
+              <button class="button open-button" data-case="${index}">Открыть</button>
+            </div>
+          </div>
+        </article>
+      `).join("");
+
+      casesElement.querySelectorAll("[data-case]").forEach(button => {
+        button.addEventListener("click", () => openCase(Number(button.dataset.case)));
+      });
+    }
+
+    function renderInventory() {
+      const list = document.getElementById("inventoryList");
+      document.getElementById("inventoryCount").textContent =
+        `${inventory.length} ${inventory.length === 1 ? "предмет" : "предметов"}`;
+
+      if (!inventory.length) {
+        list.innerHTML = '<div class="empty">Пока здесь пусто.<br>Открой кейс, чтобы найти первый предмет!</div>';
+        return;
+      }
+
+      list.innerHTML = [...inventory].reverse().map(item => `
+        <div class="inventory-item">
+          <div class="inventory-emoji">${item.emoji}</div>
+          <div><strong>${item.name}</strong><small>${item.rarity} · ${item.caseName} кейс</small></div>
+        </div>
+      `).join("");
+    }
+
+    function pickItem(items) {
+      // Условные шансы для демонстрации: обычный предмет выпадает чаще.
+      const weights = [55, 28, 13, 4];
+      const roll = Math.random() * weights.reduce((a, b) => a + b, 0);
+      let total = 0;
+      for (let i = 0; i < items.length; i++) {
+        total += weights[i] || 1;
+        if (roll < total) return items[i];
+      }
+      return items[0];
+    }
+
+    function openCase(index) {
+      if (busy) return;
+
+      const selectedCase = cases[index];
+      if (balance < selectedCase.price) {
+        showToast("Не хватает монет. Забери ежедневный бонус!");
+        return;
+      }
+
+      busy = true;
+      balance -= selectedCase.price;
+      save();
+
+      document.getElementById("modalTitle").textContent = selectedCase.name + " кейс";
+      document.getElementById("modalDescription").textContent = "Кейс открывается…";
+      document.getElementById("resultName").textContent = "";
+      closeModal.disabled = true;
+      closeModal.textContent = "Открываем…";
+      spinEmoji.textContent = selectedCase.emoji;
+      spinEmoji.classList.add("spinning");
+      modal.classList.add("show");
+
+      let ticks = 0;
+            const animation = setInterval(() => {
+        spinEmoji.textContent = selectedCase.items[
+          Math.floor(Math.random() * selectedCase.items.length)
+        ].emoji;
+        ticks++;
+        if (ticks > 13) {
+          clearInterval(animation);
+          const item = pickItem(selectedCase.items);
+          item.caseName = selectedCase.name;
+          inventory.push(item);
+          save();
+
+          spinEmoji.classList.remove("spinning");
+          spinEmoji.textContent = item.emoji;
+          document.getElementById("modalDescription").textContent = "Тебе выпало:";
+          document.getElementById("resultName").textContent =
+            `${item.name} · ${item.rarity}`;
+          closeModal.disabled = false;
+          closeModal.textContent = "Круто!";
+          renderInventory();
+          busy = false;
+        }
+      }, 115);
+    }
+
+    document.getElementById("dailyButton").addEventListener("click", () => {
+      const today = new Date().toDateString();
+      if (localStorage.getItem("gorilla-demo-daily") === today) {
+        showToast("Бонус уже забран сегодня 🙂");
+        return;
+      }
+      balance += 500;
+      localStorage.setItem("gorilla-demo-daily", today);
+      document.getElementById("dailyButton").textContent = "Забрано";
+      document.getElementById("dailyButton").disabled = true;
+      save();
+      showToast("+500 монет!");
+    });
+
+    closeModal.addEventListener("click", () => {
+      if (!busy) modal.classList.remove("show");
+    });
+
+    document.querySelectorAll(".nav-button").forEach(button => {
+      button.addEventListener("click", () => {
+        const page = button.dataset.page;
+        document.querySelectorAll(".nav-button").forEach(item =>
+          item.classList.toggle("active", item === button)
+        );
+        document.getElementById("casesSection").classList.toggle("hidden", page !== "cases");
+        document.getElementById("inventorySection").classList.toggle("active", page === "inventory");
+        if (page === "inventory") renderInventory();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    });
+
+    function init() {
+      updateBalance();
+      renderCases();
+      renderInventory();
+
+      if (localStorage.getItem("gorilla-demo-daily") === new Date().toDateString()) {
+        document.getElementById("dailyButton").textContent = "Забрано";
+        document.getElementById("dailyButton").disabled = true;
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

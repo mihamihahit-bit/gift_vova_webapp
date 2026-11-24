@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upgrade Lab — демоверсия</title>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0d0f18;
+      --panel: #151824;
+      --panel-light: #1d2130;
+      --border: #2b3042;
+      --text: #f1f3fa;
+      --muted: #858ba1;
+      --purple: #8865ff;
+      --green: #45dfa3;
+      --red: #ff637a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse at 50% -20%, #29204d 0%, transparent 55%),
+        var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .container {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    header {
+      height: 76px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      display: flex;
+      align-items: center;
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .logo {
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 1px;
+    }
+
+    .logo span {
+      color: var(--purple);
+    }
+
+    .demo-label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    main {
+      padding: 38px 0 60px;
+    }
+
+    .title {
+      margin: 0 0 8px;
+      text-align: center;
+      font-size: clamp(28px, 5vw, 40px);
+    }
+
+    .subtitle {
+      margin: 0 0 30px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .upgrade-panel {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 180px 1fr;
+      align-items: center;
+      gap: 20px;
+      padding: 28px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: linear-gradient(145deg, #191c2a, #12141e);
+      overflow: hidden;
+    }
+
+    .item-preview {
+      min-height: 210px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background:
+        radial-gradient(circle at 50% 40%, rgba(136, 101, 255, 0.12), transparent 55%),
+        var(--panel);
+      text-align: center;
+    }
+
+    .preview-icon {
+      font-size: 64px;
+      margin-bottom: 12px;
+      filter: drop-shadow(0 8px 16px rgba(136, 101, 255, 0.2));
+    }
+
+    .preview-name {
+      min-height: 20px;
+      font-weight: 700;
+    }
+
+    .preview-price {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .center-controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 13px;
+    }
+
+    .chance {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--green);
+    }
+
+    .chance-caption {
+      margin-top: -10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .arrow {
+      color: var(--purple);
+      font-size: 30px;
+    }
+
+    .upgrade-button {
+      width: 100%;
+      padding: 13px 12px;
+      border: 0;
+      border-radius: 10px;
+      background: linear-gradient(100deg, #7955f5, #a15eff);
+      color: #fff;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.15s, opacity 0.15s, filter 0.15s;
+    }
+
+    .upgrade-button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      filter: brightness(1.1);
+    }
+
+    .upgrade-button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .status {
+      min-height: 18px;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 30px 0 14px;
+    }
+
+    .section-heading h2 {
+      margin: 0;
+      font-size: 17px;
+    }
+
+    .section-heading span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .items-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .item-card {
+      min-height: 142px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: var(--panel);
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      transition: border-color 0.15s, transform 0.15s, background 0.15s;
+    }
+
+    .item-card:hover {
+      transform: translateY(-2px);
+      border-color: #6250a1;
+    }
+
+    .item-card.selected {
+      border-color: var(--purple);
+      background: #211c38;
+      box-shadow: 0 0 0 1px rgba(136, 101, 255, 0.2);
+    }
+
+    .card-icon {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 31px;
+    }
+
+    .card-name {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .card-price {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .empty {
+      grid-column: 1 / -1;
+      padding: 20px;
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .notice {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    @media (max-width: 760px) {
+      .upgrade-panel {
+        grid-template-columns: 1fr 1fr;
+        padding: 16px;
+        gap: 12px;
+      }
+
+      .item-preview {
+        min-height: 175px;
+      }
+
+      .center-controls {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        display: grid;
+        grid-template-columns: auto auto 1fr;
+        width: 100%;
+        gap: 10px;
+      }
+
+      .chance-caption {
+        display: none;
+      }
+
+      .arrow {
+        display: none;
+      }
+
+      .upgrade-button {
+        grid-column: 1 / -1;
+      }
+
+      .status {
+        grid-column: 1 / -1;
+      }
+
+      .items-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 420px) {
+      .demo-label {
+        max-width: 130px;
+        text-align: right;
+      }
+
+      .item-card {
+        min-height: 130px;
+        padding: 11px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="container header-inner">
+      <div class="logo">UPGRADE <span>LAB</span></div>
+      <div class="demo-label">Учебная демоверсия · виртуальные предметы</div>
+    </div>
+  </header>
+
+  <main class="container">
+    <h1 class="title">Апгрейд предметов</h1>
+    <p class="subtitle">
+      Выбери предмет из инвентаря и цель для попытки улучшения.
+    </p>
+
+    <section class="upgrade-panel" aria-label="Панель апгрейда">
+      <div class="item-preview">
+        <div class="preview-icon" id="sourceIcon">—</div>
+        <div class="preview-name" id="sourceName">Выбери предмет</div>
+        <div class="preview-price" id="sourcePrice">Исходный предмет</div>
+      </div>
+
+      <div class="center-controls">
+        <div class="chance" id="chance">0%</div>
+        <div class="chance-caption">шанс успеха</div>
+        <div class="arrow">➜</div>
+        <button class="upgrade-button" id="upgradeButton" disabled>
+          Улучшить
+        </button>
+        <div class="status" id="status">Сначала выбери предметы</div>
+      </div>
+
+      <div class="item-preview">
+        <div class="preview-icon" id="targetIcon">—</div>
+        <div class="preview-name" id="targetName">Выбери цель</div>
+        <div class="preview-price" id="targetPrice">Предмет для улучшения</div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-heading">
+        <h2>Твой инвентарь</h2>
+        <span id="inventoryCount"></span>
+      </div>
+      <div class="items-grid" id="inventoryGrid"></div>
+    </section>
+
+    <section>
+      <div class="section-heading">
+        <h2>Цели для апгрейда</h2>
+        <span>Нажми на предмет, чтобы выбрать его</span>
+      </div>
+      <div class="items-grid" id="targetsGrid"></div>
+    </section>
+
+    <p class="notice">
+      Это автономная демоверсия: предметы и цены вымышленные, результаты не имеют
+      денежной ценности. Обнови страницу, чтобы начать заново.
+    </p>
+  </main>
+
+  <script>
+    const inventory = [
+      { id: 1, name: "Пыльный клинок", icon: "🗡️", price: 120 },
+      { id: 2, name: "Синий жетон", icon: "🔹", price: 240 },
+      { id: 3, name: "Неоновый нож", icon: "🔪", price: 500 }
+    ];
+
+    const targets = [
+      { id: "t1", name: "Кристальный меч", icon: "⚔️", price: 350 },
+      { id: "t2", name: "Золотой артефакт", icon: "🏆", price: 700 },
+      { id: "t3", name: "Пламенный клинок", icon: "🔥", price: 1200 },
+      { id: "t4", name: "Лунный скипетр", icon: "🌙", price: 2000 }
+    ];
+
+    let selectedSourceId = null;
+    let selectedTargetId = null;
+    let isBusy = false;
+    let nextItemId = 4;
+
+    const inventoryGrid = document.getElementById("inventoryGrid");
+    const targetsGrid = document.getElementById("targetsGrid");
+    const upgradeButton = document.getElementById("upgradeButton");
+    const statusElement = document.getElementById("status");
+
+    function getSelectedSource() {
+      return inventory.find(item => item.id === selectedSourceId) || null;
+    }
+
+    function getSelectedTarget() {
+      return targets.find(item => item.id === selectedTargetId) || null;
+    }
+
+    function calculateChance(source, target) {
+      if (!source || !target) return 0;
+
+      // Чем дороже целевой предмет относительно исходного,
+      // тем ниже шанс успеха.
+      const chance = (source.price / target.price) * 90;
+      return Math.max(1, Math.min(95, chance));
+    }
+
+    function renderInventory() {
+      document.getElementById("inventoryCount").textContent =
+        `${inventory.length} предмет(ов)`;
+
+      if (inventory.length === 0) {
+        inventoryGrid.innerHTML =
+          '<div class="empty">Инвентарь пуст. Обнови страницу, чтобы начать заново.</div>';
+        return;
+      }
+
+      inventoryGrid.innerHTML = inventory.map(item => `
+        <button
+          class="item-card ${item.id === selectedSourceId ? "selected" : ""}"
+          data-id="${item.id}"
+          type="button"
+          ${isBusy ? "disabled" : ""}
+        >
+          <span class="card-icon">${item.icon}</span>
+          <span class="card-name">${item.name}</span>
+          <span class="card-price">${item.price} виртуальных очков</span>
+        </button>
+      `).join("");
+
+      inventoryGrid.querySelectorAll(".item-card").forEach(card => {
+        card.addEventListener("click", () => {
+          selectedSourceId = Number(card.dataset.id);
+          statusElement.textContent = "Предмет выбран";
+          render();
+        });
+      });
+    }
+
+    function renderTargets() {
+      targetsGrid.innerHTML = targets.map(item => `
+        <button
+          class="item-card ${item.id === selectedTargetId ? "selected" : ""}"
+          data-id="${item.id}"
+          type="button"
+          ${isBusy ? "disabled" : ""}
+        >
+          <span class="card-icon">${item.icon}</span>
+          <span class="card-name">${item.name}</span>
+          <span class="card-price">${item.price} виртуальных очков</span>
+        </button>
+      `).join("");
+
+      targetsGrid.querySelectorAll(".item-card").forEach(card => {
+        card.addEventListener("click", () => {
+          selectedTargetId = card.dataset.id;
+          statusElement.textContent = "Цель выбрана";
+          render();
+        });
+      });
+    }
+
+    function renderPreview() {
+      const source = getSelectedSource();
+      const target = getSelectedTarget();
+
+      document.getElementById("sourceIcon").textContent =
+        source ? source.icon : "—";
+      document.getElementById("sourceName").textContent =
+        source ? source.name : "Выбери предмет";
+      document.getElementById("sourcePrice").textContent =
+        source ? `${source.price} виртуальных очков` : "Исходный предмет";
+
+      document.getElementById("targetIcon").textContent =
+        target ? target.icon : "—";
+      document.getElementById("targetName").textContent =
+        target ? target.name : "Выбери цель";
+      document.getElementById("targetPrice").textContent =
+        target ? `${target.price} виртуальных очков` : "Предмет для улучшения";
+
+      const chance = calculateChance(source, target);
+      document.getElementById("chance").textContent = `${chance.toFixed(1)}%`;
+
+      upgradeButton.disabled = !source || !target || isBusy;
+    }
+
+    function render() {
+      renderInventory();
+      renderTargets();
+      renderPreview();
+    }
+
+    upgradeButton.addEventListener("click", () => {
+      const source = getSelectedSource();
+      const target = getSelectedTarget();
+
+      if (!source || !target || isBusy) return;
+
+      const chance = calculateChance(source, target);
+      const success = Math.random() * 100 < chance;
+
+      isBusy = true;
+      upgradeButton.textContent = "Проверяем...";
+      statusElement.textContent = "Идёт попытка апгрейда…";
+      render();
+
+      setTimeout(() => {
+        const sourceIndex = inventory.findIndex(
+          item => item.id === selectedSourceId
+        );
+
+        if (sourceIndex !== -1) {
+          inventory.splice(sourceIndex, 1);
+        }
+
+        if (success) {
+          inventory.push({
+            id: nextItemId++,
+            name: target.name,
+            icon: target.icon,
+            price: target.price
+          });
+          statusElement.textContent = `Успех! Получен предмет «${target.name}».`;
+        } else {
+          statusElement.textContent = "Неудача. Исходный предмет потерян.";
+        }
+
+        selectedSourceId = null;
+        isBusy = false;
+        upgradeButton.textContent = "Улучшить";
+        render();
+      }, 900);
+    });
+
+    render();
+  </script>
+</body>
+</html>

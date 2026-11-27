@@ -1,0 +1,1202 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111219">
+  <title>Gorilla Case</title>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #111219;
+      --panel: #1b1d27;
+      --panel-light: #242633;
+      --border: #303341;
+      --text: #f3f3f7;
+      --muted: #9295a5;
+      --purple: #a276ff;
+      --green: #8ce09a;
+      --red: #ff7182;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding-bottom: 88px;
+      color: var(--text);
+      background:
+        radial-gradient(ellipse at 50% -15%, #383056 0, transparent 48%),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button, select { font: inherit; }
+    button { color: inherit; }
+
+    .app {
+      width: min(100% - 32px, 980px);
+      margin: 0 auto;
+    }
+
+    .topbar {
+      height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 17px;
+      font-weight: 900;
+      letter-spacing: .5px;
+    }
+
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #ffffff1a;
+      border-radius: 14px;
+      background: linear-gradient(145deg, #a276ff, #6042b3);
+      font-size: 23px;
+    }
+
+    .brand small {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: 2px;
+    }
+
+    .balance {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--panel);
+      font-weight: 850;
+    }
+
+    .coin { color: #ffd65b; }
+
+    .hero {
+      position: relative;
+      min-height: 180px;
+      overflow: hidden;
+      padding: 27px;
+      border: 1px solid #ffffff12;
+      border-radius: 23px;
+      background:
+        radial-gradient(circle at 82% 45%, #a276ff37 0 12%, transparent 33%),
+        linear-gradient(120deg, #24203c, #1c1d29 65%);
+    }
+
+    .hero h1 {
+      position: relative;
+      z-index: 1;
+      max-width: 520px;
+      margin: 0 0 10px;
+      font-size: clamp(25px, 5vw, 38px);
+      line-height: 1.12;
+    }
+
+    .hero p {
+      position: relative;
+      z-index: 1;
+      max-width: 460px;
+      margin: 0;
+      color: #b7b5c6;
+      line-height: 1.55;
+    }
+
+    .hero-art {
+      position: absolute;
+      right: 7%;
+      top: 50%;
+      font-size: clamp(70px, 13vw, 120px);
+      filter: drop-shadow(0 12px 25px #0008);
+      transform: translateY(-50%) rotate(-10deg);
+    }
+
+    .daily {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 16px 0 28px;
+      padding: 16px 18px;
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      background: linear-gradient(100deg, #242538, #1b1d27);
+    }
+
+    .daily-title { font-weight: 800; }
+    .daily-sub { margin-top: 4px; color: var(--muted); font-size: 13px; }
+
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 0 14px;
+    }
+
+    .section-head h2 { margin: 0; font-size: 22px; }
+    .section-head span { color: var(--muted); font-size: 13px; }
+
+    .page-section { display: none; }
+    .page-section.active { display: block; }
+
+    .cases {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .case-card {
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--panel);
+    }
+
+    .case-art {
+      min-height: 140px;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 50% 60%, var(--glow), transparent 45%),
+                linear-gradient(135deg, var(--art1), var(--art2));
+      font-size: 64px;
+      text-shadow: 0 10px 24px #0008;
+    }
+
+    .case-info { padding: 14px; }
+    .case-name { margin: 0; font-size: 17px; }
+    .case-description { margin-top: 5px; color: var(--muted); font-size: 12px; }
+
+    .case-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .price { color: #f5d274; font-size: 14px; font-weight: 800; }
+
+    .button {
+      border: 0;
+      border-radius: 11px;
+      padding: 10px 15px;
+      background: linear-gradient(135deg, #a276ff, #7553d7);
+      box-shadow: 0 5px 15px #805bea28;
+      color: white;
+      font-weight: 800;
+      cursor: pointer;
+      transition: filter .15s, transform .15s, opacity .15s;
+    }
+
+    .button:hover { filter: brightness(1.12); transform: translateY(-1px); }
+    .button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+
+    /* Экран апгрейда */
+
+    .upgrade-box {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 19px;
+      background: linear-gradient(145deg, #1d1f2b, #181a23);
+    }
+
+    .upgrade-note {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .upgrade-slots {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .upgrade-slot {
+      min-width: 0;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: #14151d;
+    }
+
+    .slot-label {
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .7px;
+      text-transform: uppercase;
+    }
+
+    .slot-item {
+      min-height: 105px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      padding: 13px;
+      border-radius: 13px;
+      background:
+        radial-gradient(circle at 20% 50%, #a276ff25, transparent 45%),
+        var(--panel-light);
+    }
+
+    .slot-emoji {
+      flex: 0 0 52px;
+      font-size: 43px;
+      text-align: center;
+    }
+
+    .slot-name {
+      overflow-wrap: anywhere;
+      font-weight: 800;
+    }
+
+    .slot-value {
+      margin-top: 5px;
+      color: #f5d274;
+      font-size: 13px;
+    }
+
+    .upgrade-box select {
+      width: 100%;
+      min-height: 43px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      outline: none;
+      color: var(--text);
+      background: var(--panel-light);
+    }
+
+    .upgrade-box select:focus {
+      border-color: var(--purple);
+    }
+
+    .upgrade-middle {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 18px 0;
+    }
+
+    .chance-track {
+      height: 11px;
+      flex: 1;
+      overflow: hidden;
+      border-radius: 20px;
+      background: #30313d;
+    }
+
+    .chance-fill {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #7f5bde, #9be9a5);
+      transition: width .3s;
+    }
+
+    .chance-text {
+      min-width: 92px;
+      color: var(--green);
+      font-size: 14px;
+      font-weight: 900;
+      text-align: right;
+    }
+
+    .roulette {
+      position: relative;
+      min-height: 104px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      overflow: hidden;
+      margin-bottom: 14px;
+      padding: 16px 35px;
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      background:
+        radial-gradient(ellipse at center, #a276ff18, transparent 65%),
+        #14151d;
+    }
+
+    .roulette::before,
+    .roulette::after {
+      position: absolute;
+      z-index: 2;
+      top: 0;
+      bottom: 0;
+      width: 38px;
+      content: "";
+      pointer-events: none;
+    }
+
+    .roulette::before {
+      left: 0;
+      background: linear-gradient(90deg, #14151d, transparent);
+    }
+
+    .roulette::after {
+      right: 0;
+      background: linear-gradient(270deg, #14151d, transparent);
+    }
+        .roulette-marker {
+      position: absolute;
+      z-index: 3;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 2px;
+      background: #ffe481;
+      box-shadow: 0 0 12px #ffe481aa;
+      transform: translateX(-50%);
+    }
+
+    .roulette-cell {
+      flex: 0 0 62px;
+      display: grid;
+      place-items: center;
+      width: 62px;
+      height: 62px;
+      border: 1px solid #ffffff14;
+      border-radius: 13px;
+      background: #252633;
+      font-size: 34px;
+      transition: transform .2s;
+    }
+
+    .roulette.rolling .roulette-cell {
+      animation: roulettePulse .18s ease-in-out infinite alternate;
+    }
+
+    @keyframes roulettePulse {
+      from { transform: translateY(-2px); }
+      to { transform: translateY(2px); }
+    }
+
+    .upgrade-status {
+      min-height: 24px;
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 750;
+      text-align: center;
+    }
+
+    .upgrade-status.win { color: var(--green); }
+    .upgrade-status.lose { color: var(--red); }
+
+    .upgrade-button { width: 100%; min-height: 48px; }
+
+    .inventory-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .inventory-item {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      min-width: 0;
+      padding: 13px;
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      background: var(--panel);
+    }
+
+    .inventory-emoji {
+      width: 48px;
+      height: 48px;
+      flex: 0 0 48px;
+      display: grid;
+      place-items: center;
+      border-radius: 13px;
+      background: var(--panel-light);
+      font-size: 26px;
+    }
+
+    .inventory-details { flex: 1; min-width: 0; }
+    .inventory-details strong { display: block; overflow-wrap: anywhere; }
+    .inventory-details small { display: block; margin-top: 5px; color: var(--muted); }
+
+    .sell-button, .modal-close {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px 12px;
+      background: var(--panel-light);
+      cursor: pointer;
+    }
+
+    .empty {
+      padding: 26px 18px;
+      border: 1px dashed var(--border);
+      border-radius: 16px;
+      color: var(--muted);
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      z-index: 5;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      padding: 10px 16px max(10px, env(safe-area-inset-bottom));
+      border-top: 1px solid var(--border);
+      background: #15161eec;
+      backdrop-filter: blur(16px);
+    }
+
+    .nav-inner {
+      width: min(100%, 560px);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 0 auto;
+    }
+
+    .nav-button {
+      min-height: 44px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      color: var(--muted);
+      background: transparent;
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    .nav-button.active {
+      border-color: #a276ff45;
+      color: white;
+      background: #a276ff22;
+    }
+
+    .modal {
+      position: fixed;
+      z-index: 10;
+      inset: 0;
+      display: none;
+      place-items: center;
+      padding: 18px;
+      background: #080910c9;
+    }
+
+    .modal.show { display: grid; }
+
+    .modal-box {
+      width: min(100%, 390px);
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: #1b1d27;
+      text-align: center;
+    }
+
+    .modal-box h2 { margin: 0; }
+    .modal-box p { margin: 8px 0 18px; color: var(--muted); font-size: 13px; }
+
+    .spin-area {
+      min-height: 150px;
+      display: grid;
+      place-items: center;
+      border-radius: 16px;
+      background:
+        radial-gradient(circle, #a276ff2c, transparent 65%),
+        var(--panel-light);
+    }
+
+    .spin-emoji { font-size: 82px; }
+    .spinning { animation: spin .7s ease-in-out infinite alternate; }
+
+    @keyframes spin {
+      from { transform: rotate(-12deg) scale(.92); }
+      to { transform: rotate(12deg) scale(1.08); }
+    }
+
+    .result-name { min-height: 24px; margin: 15px 0 10px; font-weight: 850; }
+        .modal-close { width: 100%; font-weight: 750; }
+
+    .toast {
+      position: fixed;
+      z-index: 20;
+      left: 50%;
+      bottom: 88px;
+      max-width: calc(100% - 32px);
+      padding: 12px 18px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      color: var(--text);
+      background: #242632;
+      opacity: 0;
+      pointer-events: none;
+      text-align: center;
+      transform: translate(-50%, 12px);
+      transition: .2s;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    @media (max-width: 560px) {
+      .app { width: min(100% - 22px, 980px); }
+      .topbar { height: 68px; }
+      .hero { min-height: 170px; padding: 22px 18px; }
+      .hero p { max-width: 68%; font-size: 13px; }
+      .hero-art { right: 3%; font-size: 68px; }
+      .cases { gap: 10px; }
+      .case-art { min-height: 112px; font-size: 52px; }
+      .case-info { padding: 11px; }
+      .case-name { font-size: 15px; }
+      .case-description { min-height: 30px; }
+      .case-bottom { align-items: stretch; flex-direction: column; }
+      .case-bottom .button { width: 100%; }
+      .daily { padding: 13px; }
+      .daily-sub { font-size: 11px; }
+      .daily .button { padding: 10px; font-size: 12px; }
+      .upgrade-box { padding: 12px; }
+      .upgrade-slots { gap: 8px; }
+      .upgrade-slot { padding: 10px; }
+      .slot-item { min-height: 92px; gap: 5px; padding: 8px; }
+      .slot-emoji { flex-basis: 38px; font-size: 31px; }
+      .slot-name { font-size: 12px; }
+      .slot-value { font-size: 11px; }
+      .upgrade-box select { padding: 8px 5px; font-size: 11px; }
+      .roulette { gap: 7px; padding-inline: 24px; }
+      .roulette-cell { flex-basis: 48px; width: 48px; height: 52px; font-size: 28px; }
+    }
+
+    @media (max-width: 360px) {
+      .cases { grid-template-columns: 1fr; }
+      .case-bottom { align-items: center; flex-direction: row; }
+      .case-bottom .button { width: auto; }
+      .upgrade-slots { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon">🦍</div>
+        <div>GORILLA<small>CASE DEMO</small></div>
+      </div>
+
+      <div class="balance">
+        <span class="coin">●</span>
+        <span id="balanceValue">500</span>
+      </div>
+    </header>
+
+    <section class="hero">
+      <h1>Открывай кейсы и собирай предметы</h1>
+      <p>Открывай кейсы, собирай коллекцию и пробуй улучшить свои предметы.</p>
+      <div class="hero-art" aria-hidden="true">🎁</div>
+    </section>
+
+    <section class="daily">
+      <div>
+        <div class="daily-title">Ежедневная награда</div>
+        <div class="daily-sub">Забирай монеты один раз в день</div>
+      </div>
+      <button class="button" id="dailyButton">Забрать +100</button>
+    </section>
+
+    <section class="page-section active" id="casesSection">
+      <div class="section-head">
+        <h2>Кейсы</h2>
+        <span>Выбирай и открывай</span>
+      </div>
+      <div class="cases" id="casesGrid"></div>
+    </section>
+
+    <section class="page-section" id="upgradeSection">
+      <div class="section-head">
+        <h2>Апгрейд</h2>
+        <span>Попробуй улучшить предмет</span>
+      </div>
+
+      <div class="upgrade-box">
+        <p class="upgrade-note">
+          Выбери предмет из инвентаря и цель подороже. Запусти прокрутку:
+          при успехе получишь выбранную цель, при неудаче исходный предмет сгорит.
+        </p>
+
+        <div class="upgrade-slots">
+          <div class="upgrade-slot">
+            <div class="slot-label">Твой предмет</div>
+            <div class="slot-item">
+              <div class="slot-emoji" id="sourceEmoji">📦</div>
+              <div>
+                <div class="slot-name" id="sourceName">Нет предмета</div>
+                <div class="slot-value" id="sourceValue">Добавь предмет из кейса</div>
+              </div>
+            </div>
+            <select id="upgradeSource" aria-label="Выбери свой предмет"></select>
+          </div>
+
+          <div class="upgrade-slot">
+                        <div class="slot-label">Желаемый предмет</div>
+            <div class="slot-item">
+              <div class="slot-emoji" id="targetEmoji">🎯</div>
+              <div>
+                <div class="slot-name" id="targetName">Выбери цель</div>
+                <div class="slot-value" id="targetValue">Цель должна быть дороже</div>
+              </div>
+            </div>
+            <select id="upgradeTarget" aria-label="Выбери цель апгрейда"></select>
+          </div>
+        </div>
+
+        <div class="upgrade-middle">
+          <div class="chance-track">
+            <div class="chance-fill" id="chanceFill"></div>
+          </div>
+          <div class="chance-text" id="upgradeChance">Шанс: —</div>
+        </div>
+
+        <div class="roulette" id="roulette">
+          <div class="roulette-marker"></div>
+          <div class="roulette-cell">🎁</div>
+          <div class="roulette-cell">💎</div>
+          <div class="roulette-cell">🎯</div>
+          <div class="roulette-cell">✨</div>
+          <div class="roulette-cell">👑</div>
+        </div>
+
+        <div class="upgrade-status" id="upgradeStatus">
+          Выбери предметы, чтобы начать
+        </div>
+
+        <button class="button upgrade-button" id="upgradeButton" disabled>
+          Запустить апгрейд
+        </button>
+      </div>
+    </section>
+
+    <section class="page-section" id="inventorySection">
+      <div class="section-head">
+        <h2>Инвентарь</h2>
+        <span id="inventoryCount">0 предметов</span>
+      </div>
+      <div class="inventory-list" id="inventoryList"></div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav" aria-label="Основная навигация">
+    <div class="nav-inner">
+      <button class="nav-button active" data-page="cases">Кейсы</button>
+      <button class="nav-button" data-page="upgrade">Апгрейд</button>
+      <button class="nav-button" data-page="inventory">Инвентарь</button>
+    </div>
+  </nav>
+
+  <div class="modal" id="caseModal" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2 id="modalTitle">Открытие кейса</h2>
+      <p>Посмотрим, какой предмет тебе выпадет</p>
+      <div class="spin-area">
+        <div class="spin-emoji" id="spinEmoji">🎁</div>
+      </div>
+      <div class="result-name" id="resultName"></div>
+      <button class="modal-close" id="closeModal">Закрыть</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    const cases = [
+      {
+        id: "starter",
+        name: "Стартовый",
+        description: "Простые предметы для начала",
+        emoji: "📦",
+        price: 100,
+        colors: ["#3b315a", "#22283c", "#a276ff55"],
+        items: [
+          { id: "sticker", name: "Стикер «Улыбка»", emoji: "😎", value: 80, weight: 45 },
+          { id: "gloves", name: "Перчатки", emoji: "🧤", value: 130, weight: 30 },
+          { id: "crystal", name: "Фиолетовый кристалл", emoji: "💎", value: 240, weight: 18 },
+          { id: "crown", name: "Золотая корона", emoji: "👑", value: 500, weight: 7 }
+        ]
+      },
+      {
+        id: "neon",
+        name: "Неоновый",
+        description: "Яркие и редкие находки",
+        emoji: "🌌",
+        price: 250,
+        colors: ["#214854", "#242443", "#48e7ff55"],
+        items: [
+          { id: "glasses", name: "Неоновые очки", emoji: "🕶️", value: 180, weight: 40 },
+          { id: "lightning", name: "Молния", emoji: "⚡", value: 350, weight: 32 },
+          { id: "trophy", name: "Трофей", emoji: "🏆", value: 700, weight: 20 },
+          { id: "dragon", name: "Дракон", emoji: "🐉", value: 1500, weight: 8 }
+        ]
+      },
+      {
+        id: "gold",
+        name: "Золотой",
+        description: "Кейс с ценными предметами",
+        emoji: "🪙",
+        price: 500,
+        colors: ["#594925", "#30273c", "#ffd36a55"],
+        items: [
+          { id: "medal", name: "Золотая медаль", emoji: "🥇", value: 350, weight: 40 },
+          { id: "gem", name: "Редкий самоцвет", emoji: "💠", value: 800, weight: 32 },
+          { id: "rocket", name: "Золотая ракета", emoji: "🚀", value: 1600, weight: 20 },
+                    { id: "diamond", name: "Большой алмаз", emoji: "💎", value: 3000, weight: 8 }
+        ]
+      },
+      {
+        id: "mystery",
+        name: "Мистический",
+        description: "Испытай удачу!",
+        emoji: "🔮",
+        price: 1000,
+        colors: ["#542c55", "#25213e", "#ed75ff55"],
+        items: [
+          { id: "potion", name: "Магическое зелье", emoji: "🧪", value: 700, weight: 40 },
+          { id: "orb", name: "Сфера силы", emoji: "🔮", value: 1400, weight: 32 },
+          { id: "unicorn", name: "Единорог", emoji: "🦄", value: 2800, weight: 20 },
+          { id: "royal-crown", name: "Королевская корона", emoji: "👑", value: 6000, weight: 8 }
+        ]
+      }
+    ];
+
+    const STORAGE_KEY = "gorillaCaseDemo";
+    const defaultState = { coins: 500, inventory: [], lastDaily: "" };
+
+    function loadState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (!saved || typeof saved !== "object") {
+          return { ...defaultState, inventory: [] };
+        }
+
+        return {
+          coins: Number.isFinite(saved.coins) ? saved.coins : defaultState.coins,
+          inventory: Array.isArray(saved.inventory) ? saved.inventory : [],
+          lastDaily: typeof saved.lastDaily === "string" ? saved.lastDaily : ""
+        };
+      } catch {
+        return { ...defaultState, inventory: [] };
+      }
+    }
+
+    let state = loadState();
+    let toastTimer;
+    let openingCase = false;
+    let upgrading = false;
+
+    const $ = (selector) => document.querySelector(selector);
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function showToast(message) {
+      const toast = $("#toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 2300);
+    }
+
+    function renderBalance() {
+      $("#balanceValue").textContent = state.coins.toLocaleString("ru-RU");
+    }
+
+    function renderCases() {
+      $("#casesGrid").innerHTML = cases.map((caseItem) => `
+        <article class="case-card">
+          <div class="case-art"
+            style="--art1:${caseItem.colors[0]};--art2:${caseItem.colors[1]};--glow:${caseItem.colors[2]}">
+            ${caseItem.emoji}
+          </div>
+          <div class="case-info">
+            <h3 class="case-name">${caseItem.name}</h3>
+            <div class="case-description">${caseItem.description}</div>
+            <div class="case-bottom">
+              <span class="price">🪙 ${caseItem.price}</span>
+              <button class="button" data-open="${caseItem.id}">Открыть</button>
+            </div>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function renderInventory() {
+      const list = $("#inventoryList");
+      const count = state.inventory.length;
+
+      $("#inventoryCount").textContent =
+        `${count} ${count === 1 ? "предмет" : "предметов"}`;
+
+      if (count === 0) {
+        list.innerHTML = `
+          <div class="empty">
+            Инвентарь пока пуст.<br>
+            Открой кейс, чтобы получить предмет.
+          </div>
+        `;
+      } else {
+        list.innerHTML = state.inventory.map((entry) => `
+          <div class="inventory-item">
+            <div class="inventory-emoji">${entry.item.emoji}</div>
+            <div class="inventory-details">
+              <strong>${entry.item.name}</strong>
+              <small>Стоимость: 🪙 ${entry.item.value}</small>
+            </div>
+            <button class="sell-button" data-sell="${entry.uid}">Продать</button>
+          </div>
+        `).join("");
+      }
+
+      renderUpgradeOptions();
+    }
+
+    function getAllItems() {
+      const items = new Map();
+
+      for (const caseItem of cases) {
+        for (const item of caseItem.items) items.set(item.id, item);
+      }
+
+      return [...items.values()].sort((a, b) => a.value - b.value);
+    }
+
+    function renderUpgradeOptions() {
+      const sourceSelect = $("#upgradeSource");
+      const targetSelect = $("#upgradeTarget");
+            const previousSource = sourceSelect.value;
+      const previousTarget = targetSelect.value;
+
+      if (state.inventory.length === 0) {
+        sourceSelect.innerHTML = '<option value="">Инвентарь пуст</option>';
+        targetSelect.innerHTML = '<option value="">Нет доступных целей</option>';
+        updateUpgradeDisplay();
+        return;
+      }
+
+      sourceSelect.innerHTML = state.inventory.map((entry) => `
+        <option value="${entry.uid}">
+          ${entry.item.emoji} ${entry.item.name} — 🪙 ${entry.item.value}
+        </option>
+      `).join("");
+
+      if (state.inventory.some((entry) => entry.uid === previousSource)) {
+        sourceSelect.value = previousSource;
+      }
+
+      const selectedEntry = state.inventory.find(
+        (entry) => entry.uid === sourceSelect.value
+      );
+
+      const targets = selectedEntry
+        ? getAllItems().filter((item) => item.value > selectedEntry.item.value)
+        : [];
+
+      if (targets.length === 0) {
+        targetSelect.innerHTML = '<option value="">Нет предметов дороже</option>';
+      } else {
+        targetSelect.innerHTML = targets.map((item) => `
+          <option value="${item.id}">
+            ${item.emoji} ${item.name} — 🪙 ${item.value}
+          </option>
+        `).join("");
+
+        if (targets.some((item) => item.id === previousTarget)) {
+          targetSelect.value = previousTarget;
+        }
+      }
+
+      updateUpgradeDisplay();
+    }
+
+    function getUpgradeData() {
+      const entry = state.inventory.find(
+        (item) => item.uid === $("#upgradeSource").value
+      );
+
+      const target = getAllItems().find(
+        (item) => item.id === $("#upgradeTarget").value
+      );
+
+      if (!entry || !target || target.value <= entry.item.value) return null;
+
+      // Чем дороже цель относительно исходного предмета, тем ниже шанс.
+      const chance = Math.min(
+        90,
+        Math.max(1, Math.floor((entry.item.value / target.value) * 80))
+      );
+
+      return { entry, target, chance };
+    }
+
+    function updateUpgradeDisplay() {
+      const source = state.inventory.find(
+        (entry) => entry.uid === $("#upgradeSource").value
+      );
+
+      const target = getAllItems().find(
+        (item) => item.id === $("#upgradeTarget").value
+      );
+
+      const validTarget = source && target && target.value > source.item.value;
+      const data = validTarget ? getUpgradeData() : null;
+
+      $("#sourceEmoji").textContent = source ? source.item.emoji : "📦";
+      $("#sourceName").textContent = source ? source.item.name : "Нет предмета";
+      $("#sourceValue").textContent = source
+        ? `Стоимость: 🪙 ${source.item.value}`
+        : "Открой кейс, чтобы получить предмет";
+
+      $("#targetEmoji").textContent = validTarget ? target.emoji : "🎯";
+      $("#targetName").textContent = validTarget ? target.name : "Выбери цель";
+      $("#targetValue").textContent = validTarget
+        ? `Стоимость: 🪙 ${target.value}`
+        : "Цель должна быть дороже";
+
+      $("#upgradeChance").textContent = data
+        ? `Шанс: ${data.chance}%`
+        : "Шанс: —";
+
+      $("#chanceFill").style.width = data ? `${data.chance}%` : "0%";
+      $("#upgradeButton").disabled = !data || upgrading;
+
+      if (!upgrading && !data) {
+        $("#upgradeStatus").textContent = state.inventory.length
+          ? "Выбери предметы, чтобы начать"
+          : "Сначала открой кейс и получи предмет";
+        $("#upgradeStatus").className = "upgrade-status";
+      }
+    }
+
+    function pickItem(items) {
+      const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
+      let roll = Math.random() * totalWeight;
+
+      for (const item of items) {
+        roll -= item.weight;
+        if (roll <= 0) return item;
+      }
+
+      return items[items.length - 1];
+    }
+
+    function openCase(caseId) {
+      const selectedCase = cases.find((item) => item.id === caseId);
+      if (!selectedCase || openingCase) return;
+
+      if (state.coins < selectedCase.price) {
+        showToast("Не хватает монет");
+        return;
+      }
+            state.coins -= selectedCase.price;
+      saveState();
+      renderBalance();
+
+      openingCase = true;
+      $("#modalTitle").textContent = `Открываем: ${selectedCase.name}`;
+      $("#resultName").textContent = "";
+      $("#spinEmoji").textContent = selectedCase.emoji;
+      $("#spinEmoji").classList.add("spinning");
+      $("#caseModal").classList.add("show");
+
+      setTimeout(() => {
+        const item = pickItem(selectedCase.items);
+
+        state.inventory.push({
+          uid: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          item
+        });
+
+        saveState();
+        renderInventory();
+
+        $("#spinEmoji").classList.remove("spinning");
+        $("#spinEmoji").textContent = item.emoji;
+        $("#resultName").textContent = `${item.name} · 🪙 ${item.value}`;
+        $("#modalTitle").textContent = "Тебе выпало!";
+        openingCase = false;
+      }, 1400);
+    }
+
+    function runUpgrade() {
+      const data = getUpgradeData();
+      if (!data || upgrading) return;
+
+      upgrading = true;
+      $("#upgradeButton").disabled = true;
+      $("#upgradeSource").disabled = true;
+      $("#upgradeTarget").disabled = true;
+
+      const roulette = $("#roulette");
+      const cells = [...roulette.querySelectorAll(".roulette-cell")];
+      const emojis = getAllItems().map((item) => item.emoji);
+
+      roulette.classList.add("rolling");
+      $("#upgradeStatus").textContent = "Апгрейд прокручивается...";
+      $("#upgradeStatus").className = "upgrade-status";
+
+      const rollTimer = setInterval(() => {
+        cells.forEach((cell) => {
+          cell.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        });
+      }, 100);
+
+      setTimeout(() => {
+        clearInterval(rollTimer);
+        roulette.classList.remove("rolling");
+
+        const success = Math.random() * 100 < data.chance;
+        const inventoryIndex = state.inventory.findIndex(
+          (entry) => entry.uid === data.entry.uid
+        );
+
+        if (inventoryIndex !== -1) {
+          if (success) {
+            state.inventory[inventoryIndex] = {
+              uid: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+              item: data.target
+            };
+
+            cells[2].textContent = data.target.emoji;
+            $("#upgradeStatus").textContent =
+              `Успех! Получен предмет: ${data.target.name}`;
+            $("#upgradeStatus").className = "upgrade-status win";
+          } else {
+            state.inventory.splice(inventoryIndex, 1);
+
+            cells[2].textContent = "💥";
+            $("#upgradeStatus").textContent =
+              "Неудача — исходный предмет потерян";
+            $("#upgradeStatus").className = "upgrade-status lose";
+          }
+        }
+
+        saveState();
+        renderInventory();
+
+        upgrading = false;
+        $("#upgradeSource").disabled = false;
+        $("#upgradeTarget").disabled = false;
+        updateUpgradeDisplay();
+      }, 1900);
+    }
+
+    $("#casesGrid").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-open]");
+      if (button) openCase(button.dataset.open);
+    });
+
+    $("#dailyButton").addEventListener("click", () => {
+      const now = new Date();
+      const today = [
+        now.getFullYear(),
+        String(now.getMonth() + 1).padStart(2, "0"),
+        String(now.getDate()).padStart(2, "0")
+      ].join("-");
+
+      if (state.lastDaily === today) {
+        showToast("Ежедневная награда уже получена");
+        return;
+      }
+
+      state.lastDaily = today;
+      state.coins += 100;
+      saveState();
+      renderBalance();
+      showToast("Начислено 100 монет!");
+    });
+
+    document.querySelectorAll(".nav-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        const page = button.dataset.page;
+
+        document.querySelectorAll(".nav-button").forEach((navButton) => {
+          navButton.classList.toggle("active", navButton === button);
+        });
+
+        $("#casesSection").classList.toggle("active", page === "cases");
+                $("#upgradeSection").classList.toggle("active", page === "upgrade");
+        $("#inventorySection").classList.toggle("active", page === "inventory");
+      });
+    });
+
+    $("#inventoryList").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-sell]");
+      if (!button) return;
+
+      const index = state.inventory.findIndex(
+        (entry) => entry.uid === button.dataset.sell
+      );
+
+      if (index === -1) return;
+
+      const [entry] = state.inventory.splice(index, 1);
+      const reward = Math.floor(entry.item.value * 0.7);
+
+      state.coins += reward;
+      saveState();
+      renderBalance();
+      renderInventory();
+      showToast(`Предмет продан за ${reward} монет`);
+    });
+
+    $("#upgradeSource").addEventListener("change", () => {
+      renderUpgradeOptions();
+    });
+
+    $("#upgradeTarget").addEventListener("change", () => {
+      updateUpgradeDisplay();
+    });
+
+    $("#upgradeButton").addEventListener("click", runUpgrade);
+
+    $("#closeModal").addEventListener("click", () => {
+      if (!openingCase) $("#caseModal").classList.remove("show");
+    });
+
+    $("#caseModal").addEventListener("click", (event) => {
+      if (event.target.id === "caseModal" && !openingCase) {
+        $("#caseModal").classList.remove("show");
+      }
+    });
+
+    renderCases();
+    renderBalance();
+    renderInventory();
+  </script>
+</body>
+</html>
+            
+            
+            
